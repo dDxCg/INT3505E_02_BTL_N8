@@ -2,7 +2,7 @@
 set -e
 
 # === CONFIG ===
-BASE_BRANCH="main"
+BASE_BRANCH="base"
 FRONTEND_BRANCH="frontend"
 FRONTEND_DIR="frontend"
 TMP_BRANCH="tmp_frontend_merge"
@@ -46,6 +46,6 @@ git merge --allow-unrelated-histories $TMP_BRANCH -m "Merge $FRONTEND_BRANCH int
 # === CLEANUP ===
 git branch -D $TMP_BRANCH
 
-echo "Frontend successfully merged into $FRONTEND_DIR"
-echo "Push when ready:"
-echo "git push origin $BASE_BRANCH"
+# echo "Frontend successfully merged into $FRONTEND_DIR"
+# echo "Push when ready:"
+# echo "git push origin $BASE_BRANCH"
