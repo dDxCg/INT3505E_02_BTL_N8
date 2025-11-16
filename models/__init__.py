@@ -7,4 +7,4 @@ from .OrderItem import OrderItem
 from .Table import Table
 from .User import User
 from .Payment import Payment
-from .enum import Role, OrderStatus, OrderItemStatus, PaymentMethod, EquipmentStatus, Unit
+from .enum import Role, OrderStatus, OrderItemStatus, PaymentMethod, EquipmentStatus, Unit, EquipmentType

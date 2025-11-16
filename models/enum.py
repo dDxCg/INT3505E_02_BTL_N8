@@ -34,3 +34,15 @@ class Role(enum.Enum):
     staff = "staff"
     admin = "admin"
     owner = "owner"
+
+class EquipmentType(enum.Enum):
+    pending = "pending"
+    oven = "oven"
+    stove = "stove"
+    grill = "grill"
+    fridge = "fridge"
+    freezer = "freezer"
+    microwave = "microwave"
+    sink = "sink"
+    dishwasher = "dishwasher"
+    coffee_machine = "coffee_machine"
