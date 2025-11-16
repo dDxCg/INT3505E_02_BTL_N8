@@ -10,7 +10,7 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True)
     table_id = Column(Integer, ForeignKey("tables.id"))
-    status = Column(Enum(OrderStatus), default=OrderStatus.available)
+    status = Column(Enum(OrderStatus), default=OrderStatus.pending)
 
     table = relationship("Table", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
