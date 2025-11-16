@@ -2,12 +2,8 @@ from configs.postgre import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum
 import enum
+from .enum import OrderItemStatus
 
-class OrderItemStatus(enum.Enum):
-    pending = "pending"
-    cooking = "cooking"
-    served = "served"
-    cancelled = "cancelled"
 
 class OrderItem(Base):
     __tablename__ = "order_items"

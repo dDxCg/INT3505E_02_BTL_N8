@@ -2,12 +2,8 @@ from sqlalchemy import Column, Integer, String, Float, Enum
 from sqlalchemy.orm import relationship
 from configs.postgre import Base
 import enum
+from .enum import EquipmentStatus
 
-class EquipmentStatus(enum.Enum):
-    available = "available"
-    in_use = "in_use"
-    maintenance = "maintenance"
-    broken = "broken"
 
 class Equipment(Base):
     __tablename__ = "equipments"

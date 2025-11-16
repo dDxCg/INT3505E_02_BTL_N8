@@ -1,6 +1,8 @@
 from configs.postgre import Base 
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum
+import enum
+
 
 class Table(Base):
     __tablename__ = "tables"

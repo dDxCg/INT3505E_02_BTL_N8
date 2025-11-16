@@ -2,12 +2,8 @@ from sqlalchemy import Column, Integer, String, Float, Enum
 from sqlalchemy.orm import relationship
 from configs.postgre import Base
 import enum
+from .enum import Unit
 
-class Unit(enum.Enum):
-    grams = "grams"
-    kilograms = "kilograms"
-    liters = "liters"
-    pieces = "pieces"
 
 class Ingredient(Base):
     __tablename__ = "ingredients"

@@ -2,10 +2,7 @@ from configs.postgre import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum
 import enum
-
-class Role(enum.Enum):
-    staff = "staff"
-    owner = "owner"
+from .enum import Role
 
 class User(Base):
     __tablename__ = "users"
