@@ -11,6 +11,6 @@ class Ingredient(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
     unit = Column(Enum(Unit), nullable=False)  
-    qunatity = Column(Float, default=0)       
+    quantity = Column(Float, default=0)       
     threshold = Column(Float, default=0)       # minimum before restocking
 
