@@ -6,5 +6,5 @@ from .Order import Order
 from .OrderItem import OrderItem
 from .Table import Table
 from .User import User
-from .Payment import Payment
+from .Payment import Payment, PaymentMethod, PaymentProvider, PaymentStatus
 from .enum import Role, OrderStatus, OrderItemStatus, PaymentMethod, EquipmentStatus, Unit, EquipmentType
