@@ -7,3 +7,5 @@ upgrade: alembic upgrade head
 downgrade: alembic downgrade -1
 history: alembic history
 merge: alembic merge -m "merge branches" <revision1> <revision2>
+
+Collabrator sync migration: alembic upgrade head

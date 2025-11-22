@@ -1,8 +1,6 @@
 from configs.postgre import Base 
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum
-import enum
-from .enum import OrderStatus
+from sqlalchemy import Column, Integer, String, ForeignKey
 
 class OrderStatus(Base):
     __tablename__ = "order_statuses"
@@ -18,8 +16,10 @@ class Order(Base):
     id = Column(Integer, primary_key=True)
     table_id = Column(Integer, ForeignKey("tables.id"))
     status_id = Column(Integer, ForeignKey("order_statuses.id"))
+    guest_id = Column(Integer, ForeignKey("guests.id"), nullable=True)  
+    # optional link to guest: not necessary for guest book at the restaurant
 
     table = relationship("Table", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
-    
+    guest = relationship("Guest", back_populates="orders")
     status = relationship("OrderStatus", back_populates="orders")

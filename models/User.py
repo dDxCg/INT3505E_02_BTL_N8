@@ -14,9 +14,9 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    phone = Column(String(255), unique=True, nullable=False)
+    contact_info = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
-    full_name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False)
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
 
     role = relationship("Role", back_populates="users")
