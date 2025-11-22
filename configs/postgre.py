@@ -5,8 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 
-
-load_dotenv(".env.local")
+ENV = os.getenv('ENV', 'local')
+dotenv_path = f".env.{ENV}"
+load_dotenv(dotenv_path)
 
 DATABASE_URL = re.sub(
     r'^postgresql:',
