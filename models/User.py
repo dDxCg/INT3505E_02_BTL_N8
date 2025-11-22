@@ -1,13 +1,22 @@
 from configs.postgre import Base 
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum
-import enum
-from .enum import Role
+from sqlalchemy import Column, Integer, String, ForeignKey
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50), unique=True, nullable=False)
+
+    users = relationship("User", back_populates="role")
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String(255), unique=True, nullable=False)
+    phone = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
-    role = Column(Enum(Role), default=Role.staff)
+    full_name = Column(String(255), nullable=False)
+    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
+
+    role = relationship("Role", back_populates="users")
