@@ -28,3 +28,7 @@ SessionFactory = sessionmaker(
 )
 
 Base = declarative_base()
+
+async def get_db():
+    async with SessionFactory() as session:
+        yield session
