@@ -7,11 +7,14 @@ class IngredientCreate(BaseModel):
     quantity: float
     threshold: float
 
-class IngredientOptional(BaseModel):
+class IngredientUpdate(BaseModel):
     name: str | None = None
     unit_id: int | None = None
     quantity: float | None = None
     threshold: float | None = None
+
+class IngredientFilter(IngredientUpdate):
+    pass
 
 class IngredientRead(BaseModel):
     id: int
@@ -30,6 +33,9 @@ class IngredientUnitCreate(BaseModel):
 
 class IngredientUnitUpdate(BaseModel):
     name: str | None = None
+
+class IngredientUnitFilter(IngredientUnitUpdate):
+    pass
 
 class IngredientUnitRead(BaseModel):
     id: int

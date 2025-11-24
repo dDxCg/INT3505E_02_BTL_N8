@@ -1,6 +1,6 @@
 from Equipment import (EquipmentCreate, EquipmentFilter, EquipmentUpdate,EquipmentRead,
-    EquipmentTypeCreate, EquipmentTypeUpdate, EquipmentTypeRead,
-    EquipmentStatusCreate, EquipmentStatusUpdate, EquipmentStatusRead)
+    EquipmentTypeCreate, EquipmentTypeUpdate, EquipmentStatusFilter,EquipmentTypeRead,
+    EquipmentStatusCreate, EquipmentStatusUpdate, EquipmentTypeFilter, EquipmentStatusRead)
 
-from Ingredient import (IngredientCreate, IngredientOptional, IngredientRead,
-    IngredientUnitCreate, IngredientUnitUpdate, IngredientUnitRead)
+from Ingredient import (IngredientCreate, IngredientUpdate, IngredientFilter, IngredientRead,
+    IngredientUnitCreate, IngredientUnitUpdate, IngredientUnitFilter,IngredientUnitRead)
