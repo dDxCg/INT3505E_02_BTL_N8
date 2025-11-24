@@ -1,4 +1,5 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Float
+from datetime import datetime
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Float
 from sqlalchemy.orm import relationship
 from configs.postgre import Base
 
@@ -21,3 +22,14 @@ class Ingredient(Base):
 
     unit = relationship("IngredientUnit", back_populates="ingredients")
 
+
+class IngredientHistory(Base):
+    __tablename__ = "ingredient_histories"
+
+    id = Column(Integer, primary_key=True)
+    ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
+    change = Column(Float, nullable=False)  
+    reason = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)    
+
+    ingredient = relationship("Ingredient")
