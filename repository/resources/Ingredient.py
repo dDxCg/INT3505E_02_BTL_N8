@@ -17,6 +17,9 @@ class IngredientRepository:
         self.db = db
 
     async def create_ingredient(self, data: IngredientCreate) -> Ingredient:
+        unit = await self.db.execute(select(IngredientUnit).where(IngredientUnit.id == data.unit_id))
+        if (unit.scalar_one_or_none() is None):
+            raise ValueError(f"IngredientUnit with id {data.unit_id} does not exist.")
         ingredient = Ingredient(**data.model_dump())
         self.db.add(ingredient)
         await self.db.commit()
@@ -54,6 +57,11 @@ class IngredientRepository:
 
         if not update_data:
             return ingredient
+
+        if "unit_id" in update_data:
+            unit = await self.db.execute(select(IngredientUnit).where(IngredientUnit.id == update_data["unit_id"]))
+            if (unit.scalar_one_or_none() is None):
+                raise ValueError(f"IngredientUnit with id {update_data['unit_id']} does not exist.")
 
         await self.db.execute(
             update(Ingredient).where(Ingredient.id == ingredient_id).values(**update_data)
@@ -131,6 +139,9 @@ class IngredientHistoryRepository:
         self.db = db
 
     async def create_ingredient_history(self, data: IngredientHistoryCreate) -> IngredientHistory:
+        ingredient = await self.db.execute(select(Ingredient).where(Ingredient.id == data.ingredient_id))
+        if (ingredient.scalar_one_or_none() is None):
+            raise ValueError(f"Ingredient with id {data.ingredient_id} does not exist.")
         history = IngredientHistory(**data.model_dump())
         self.db.add(history)
         await self.db.commit()
@@ -166,6 +177,11 @@ class IngredientHistoryRepository:
 
         if not update_data:
             return history
+        
+        if "ingredient_id" in update_data:
+            ingredient = await self.db.execute(select(Ingredient).where(Ingredient.id == update_data["ingredient_id"]))
+            if (ingredient.scalar_one_or_none() is None):
+                raise ValueError(f"Ingredient with id {update_data['ingredient_id']} does not exist.")
 
         await self.db.execute(
             update(IngredientHistory).where(IngredientHistory.id == history_id).values(**update_data)

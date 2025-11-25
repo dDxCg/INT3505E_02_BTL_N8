@@ -19,6 +19,12 @@ class EquipmentRepository:
 
 
     async def create_equipment(self, data: EquipmentCreate) -> Equipment:
+        type_ = await self.db.execute(select(EquipmentType).where(EquipmentType.id == data.type_id))
+        if (type_.scalar_one_or_none() is None):
+            raise ValueError(f"EquipmentType with id {data.type_id} does not exist.")
+        status = await self.db.execute(select(EquipmentStatus).where(EquipmentStatus.id == data.status_id))
+        if (status.scalar_one_or_none() is None):
+            raise ValueError(f"EquipmentStatus with id {data.status_id} does not exist.")
         equip = Equipment(**data.model_dump())  
         self.db.add(equip)
         await self.db.commit()
@@ -69,6 +75,16 @@ class EquipmentRepository:
 
         if not update_data:
             return equip
+        
+        if 'type_id' in update_data:
+            type_ = await self.db.execute(select(EquipmentType).where(EquipmentType.id == update_data['type_id']))
+            if (type_.scalar_one_or_none() is None):
+                raise ValueError(f"EquipmentType with id {update_data['type_id']} does not exist.")
+        
+        if 'status_id' in update_data:
+            status = await self.db.execute(select(EquipmentStatus).where(EquipmentStatus.id == update_data['status_id']))
+            if (status.scalar_one_or_none() is None):
+                raise ValueError(f"EquipmentStatus with id {update_data['status_id']} does not exist.")
 
         await self.db.execute(update(Equipment).where(Equipment.id == equipment_id).values(**update_data))
         await self.db.commit()
