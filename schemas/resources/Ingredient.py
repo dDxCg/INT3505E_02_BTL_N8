@@ -23,8 +23,9 @@ class IngredientRead(BaseModel):
     quantity: float
     threshold: float
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # --- Ingredient Unit Schemas ---
@@ -41,5 +42,6 @@ class IngredientUnitRead(BaseModel):
     id: int
     name: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }

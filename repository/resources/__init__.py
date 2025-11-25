@@ -1,2 +1,2 @@
-from Equipment import EquipmentRepository, EquipmentTypeRepository, EquipmentStatusRepository
-from Ingredient import IngredientRepository, IngredientUnitRepository
+from .Equipment import EquipmentRepository, EquipmentTypeRepository, EquipmentStatusRepository
+from .Ingredient import IngredientRepository, IngredientUnitRepository

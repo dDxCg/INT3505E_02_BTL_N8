@@ -20,8 +20,9 @@ class EquipmentRead(BaseModel):
     type_id: int
     status_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # --- Equipment Type Schemas ---
@@ -38,8 +39,9 @@ class EquipmentTypeRead(BaseModel):
     id: int
     name: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # --- Equipment Status Schemas ---
@@ -56,5 +58,6 @@ class EquipmentStatusRead(BaseModel):
     id: int
     status: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
