@@ -20,7 +20,7 @@ class IngredientRepository:
         await self.db.refresh(ingredient)
         return ingredient
     
-    async def get_all(self, filters: IngredientFilter) -> list[Ingredient]:
+    async def get_all_ingredients(self, filters: IngredientFilter) -> list[Ingredient]:
         query = select(Ingredient)
         conditions = []
 
@@ -35,12 +35,12 @@ class IngredientRepository:
         result = await self.db.execute(query)
         return result.scalars().all()
     
-    async def get_by_id(self, ingredient_id: int) -> Ingredient | None:
+    async def get_ingredient_by_id(self, ingredient_id: int) -> Ingredient | None:
         result = await self.db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
         return result.scalar_one_or_none()
     
     async def update_ingredient(self, ingredient_id: int, data: IngredientUpdate) -> Ingredient | None:
-        ingredient = await self.get_by_id(ingredient_id)
+        ingredient = await self.get_ingredient_by_id(ingredient_id)
         if not ingredient:
             return None
 
@@ -60,7 +60,7 @@ class IngredientRepository:
         return ingredient
     
     async def delete_ingredient(self, ingredient_id: int) -> Ingredient | None:
-        ingredient = await self.get_by_id(ingredient_id)
+        ingredient = await self.get_ingredient_by_id(ingredient_id)
         if ingredient:
             await self.db.execute(delete(Ingredient).where(Ingredient.id == ingredient_id))
             await self.db.commit()
@@ -78,7 +78,7 @@ class IngredientUnitRepository:
         await self.db.refresh(unit)
         return unit
     
-    async def get_all(self, filters: IngredientUnitFilter) -> list[IngredientUnit]:
+    async def get_all_ingredient_units(self, filters: IngredientUnitFilter) -> list[IngredientUnit]:
         query = select(IngredientUnit)
         conditions = []
 
@@ -91,12 +91,12 @@ class IngredientUnitRepository:
         result = await self.db.execute(query)
         return result.scalars().all()
     
-    async def get_by_id(self, unit_id: int) -> IngredientUnit | None:
+    async def get_ingredient_unit_by_id(self, unit_id: int) -> IngredientUnit | None:
         result = await self.db.execute(select(IngredientUnit).where(IngredientUnit.id == unit_id))
         return result.scalar_one_or_none()
     
     async def update_ingredient_unit(self, unit_id: int, data: IngredientUnitUpdate) -> IngredientUnit | None:
-        unit = await self.get_by_id(unit_id)
+        unit = await self.get_ingredient_unit_by_id(unit_id)
         if not unit:
             return None
 
@@ -116,7 +116,7 @@ class IngredientUnitRepository:
         return unit
     
     async def delete_ingredient_unit(self, unit_id: int) -> IngredientUnit | None:
-        unit = await self.get_by_id(unit_id)
+        unit = await self.get_ingredient_unit_by_id(unit_id)
         if unit:
             await self.db.execute(delete(IngredientUnit).where(IngredientUnit.id == unit_id))
             await self.db.commit()

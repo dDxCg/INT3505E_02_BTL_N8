@@ -23,7 +23,7 @@ async def get_equipments(
     db: AsyncSession = Depends(get_db),
 ):
     equip_repository = EquipmentRepository(db)
-    return await equip_repository.get_all(filter)
+    return await equip_repository.get_all_equipment(filter)
 
 
 @router.get("/{equipment_id}", response_model=EquipmentRead)
@@ -32,7 +32,7 @@ async def get_equipment_by_id(
     db: AsyncSession = Depends(get_db),
 ):
     equip_repository = EquipmentRepository(db)
-    return await equip_repository.get_by_id(equipment_id)
+    return await equip_repository.get_equipment_by_id(equipment_id)
 
 
 @router.put("/{equipment_id}", response_model=EquipmentRead)

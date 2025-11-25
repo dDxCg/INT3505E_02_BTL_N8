@@ -24,3 +24,4 @@ class Order(Base):
     guest = relationship("Guest", back_populates="orders")
     status = relationship("OrderStatus", back_populates="orders")
     feedbacks = relationship("Feedback", back_populates="order", cascade="all, delete-orphan")
+    payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")

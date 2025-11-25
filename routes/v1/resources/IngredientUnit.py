@@ -22,7 +22,7 @@ async def get_ingredient_units(
     db: AsyncSession = Depends(get_db),
 ):
     ingredient_unit_repository = IngredientUnitRepository(db)
-    return await ingredient_unit_repository.get_all(filter)
+    return await ingredient_unit_repository.get_all_ingredient_units(filter)
 
 
 @router.get("/{ingredient_unit_id}", response_model=IngredientUnitRead)
@@ -31,7 +31,7 @@ async def get_ingredient_unit_by_id(
     db: AsyncSession = Depends(get_db),
 ):
     ingredient_unit_repository = IngredientUnitRepository(db)
-    return await ingredient_unit_repository.get_by_id(ingredient_unit_id)
+    return await ingredient_unit_repository.get_ingredient_unit_by_id(ingredient_unit_id)
 
 
 @router.put("/{ingredient_unit_id}", response_model=IngredientUnitRead)
