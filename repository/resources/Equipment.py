@@ -26,7 +26,7 @@ class EquipmentRepository:
         return equip
 
 
-    async def get_all(self, filters: EquipmentFilter) -> list[Equipment]:
+    async def get_all_equipment(self, filters: EquipmentFilter) -> list[Equipment]:
         query = select(Equipment)
         conditions = []
 
@@ -44,13 +44,13 @@ class EquipmentRepository:
         return result.scalars().all()
 
 
-    async def get_by_id(self, equipment_id: int) -> Equipment | None:
+    async def get_equipment_by_id(self, equipment_id: int) -> Equipment | None:
         result = await self.db.execute(select(Equipment).where(Equipment.id == equipment_id))
         return result.scalar_one_or_none()
 
 
     async def delete_equipment(self, equipment_id: int) -> Equipment | None:
-        equip = await self.get_by_id(equipment_id)
+        equip = await self.get_equipment_by_id(equipment_id)
         if equip:
             await self.db.execute(delete(Equipment).where(Equipment.id == equipment_id))
             await self.db.commit()
@@ -58,7 +58,7 @@ class EquipmentRepository:
     
 
     async def update_equipment(self, equipment_id: int, data: EquipmentUpdate) -> Equipment | None:
-        equip = await self.get_by_id(equipment_id)
+        equip = await self.get_equipment_by_id(equipment_id)
         if not equip:
             return None
 
@@ -86,7 +86,7 @@ class EquipmentTypeRepository:
         await self.db.refresh(equip_type)  
         return equip_type
     
-    async def get_by_id(self, type_id: int) -> EquipmentType | None:
+    async def get_equipment_type_by_id(self, type_id: int) -> EquipmentType | None:
         result = await self.db.execute(select(EquipmentType).where(EquipmentType.id == type_id))
         return result.scalar_one_or_none()
     
@@ -104,7 +104,7 @@ class EquipmentTypeRepository:
         return result.scalars().all()
     
     async def update_equipment_type(self, type_id: int, data: EquipmentTypeUpdate) -> EquipmentType | None:
-        equip_type = await self.get_by_id(type_id)
+        equip_type = await self.get_equipment_type_by_id(type_id)
         if not equip_type:
             return None
 
@@ -122,7 +122,7 @@ class EquipmentTypeRepository:
         return equip_type
     
     async def delete_equipment_type(self, type_id: int) -> EquipmentType | None:
-        equip_type = await self.get_by_id(type_id)
+        equip_type = await self.get_equipment_type_by_id(type_id)
         if equip_type:
             await self.db.execute(delete(EquipmentType).where(EquipmentType.id == type_id))
             await self.db.commit()
@@ -139,7 +139,7 @@ class EquipmentStatusRepository:
         await self.db.refresh(equip_status)  
         return equip_status
     
-    async def get_by_id(self, status_id: int) -> EquipmentStatus | None:
+    async def get_equipment_status_by_id(self, status_id: int) -> EquipmentStatus | None:
         result = await self.db.execute(select(EquipmentStatus).where(EquipmentStatus.id == status_id))
         return result.scalar_one_or_none()
     
@@ -157,7 +157,7 @@ class EquipmentStatusRepository:
         return result.scalars().all()
     
     async def update_equipment_status(self, status_id: int, data: EquipmentStatusUpdate) -> EquipmentStatus | None:
-        equip_status = await self.get_by_id(status_id)
+        equip_status = await self.get_equipment_status_by_id(status_id)
         if not equip_status:
             return None
         
@@ -175,7 +175,7 @@ class EquipmentStatusRepository:
         return equip_status
     
     async def delete_equipment_status(self, status_id: int) -> EquipmentStatus | None:
-        equip_status = await self.get_by_id(status_id)
+        equip_status = await self.get_equipment_status_by_id(status_id)
         if equip_status:
             await self.db.execute(delete(EquipmentStatus).where(EquipmentStatus.id == status_id))
             await self.db.commit()
