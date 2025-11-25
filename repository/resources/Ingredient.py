@@ -1,13 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, select, update
-from models import Ingredient, IngredientUnit
+from models import Ingredient, IngredientUnit, IngredientHistory
 from schemas.resources import (
     IngredientCreate,
     IngredientUpdate, 
     IngredientFilter,
     IngredientUnitCreate,
     IngredientUnitUpdate,
-    IngredientUnitFilter)
+    IngredientUnitFilter,
+    IngredientHistoryCreate,
+    IngredientHistoryUpdate,
+    IngredientHistoryFilter)
 
 class IngredientRepository:
     def __init__(self, db: AsyncSession):
@@ -121,3 +124,59 @@ class IngredientUnitRepository:
             await self.db.execute(delete(IngredientUnit).where(IngredientUnit.id == unit_id))
             await self.db.commit()
         return unit
+    
+
+class IngredientHistoryRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def create_ingredient_history(self, data: IngredientHistoryCreate) -> IngredientHistory:
+        history = IngredientHistory(**data.model_dump())
+        self.db.add(history)
+        await self.db.commit()
+        await self.db.refresh(history)
+        return history
+    
+    async def get_all_ingredient_histories(self, filters: IngredientHistoryFilter) -> list[IngredientHistory]:
+        query = select(IngredientHistory)
+        conditions = []
+
+        if filters.ingredient_id is not None:
+            conditions.append(IngredientHistory.ingredient_id == filters.ingredient_id)
+
+        if conditions:
+            query = query.where(*conditions)
+
+        result = await self.db.execute(query)
+        return result.scalars().all()
+    
+    async def get_ingredient_history_by_id(self, history_id: int) -> IngredientHistory | None:
+        result = await self.db.execute(select(IngredientHistory).where(IngredientHistory.id == history_id))
+        return result.scalar_one_or_none()
+    
+    async def update_ingredient_history(self, history_id: int, data: IngredientHistoryUpdate) -> IngredientHistory | None:
+        history = await self.get_ingredient_history_by_id(history_id)
+        if not history:
+            return None
+
+        update_data = {}
+        for k, v in data.model_dump().items():
+            if v is not None:
+                update_data[k] = v
+
+        if not update_data:
+            return history
+
+        await self.db.execute(
+            update(IngredientHistory).where(IngredientHistory.id == history_id).values(**update_data)
+        )
+        await self.db.commit()
+        await self.db.refresh(history)
+        return history
+    
+    async def delete_ingredient_history(self, history_id: int) -> IngredientHistory | None:
+        history = await self.get_ingredient_history_by_id(history_id)
+        if history:
+            await self.db.execute(delete(IngredientHistory).where(IngredientHistory.id == history_id))
+            await self.db.commit()
+        return history

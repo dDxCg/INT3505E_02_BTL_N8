@@ -45,3 +45,32 @@ class IngredientUnitRead(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+# --- Ingredient History Schemas ---
+class IngredientHistoryCreate(BaseModel):
+    ingredient_id: int
+    change: float
+    reason: str | None = None
+    created_at: str | None = None
+
+
+class IngredientHistoryRead(BaseModel):
+    id: int
+    ingredient_id: int
+    change: float
+    reason: str | None = None
+    created_at: str
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class IngredientHistoryUpdate(BaseModel):
+    ingredient_id: int | None = None
+    change: float | None = None
+    reason: str | None = None
+    created_at: str | None = None
+
+class IngredientHistoryFilter(IngredientHistoryUpdate):
+    pass
