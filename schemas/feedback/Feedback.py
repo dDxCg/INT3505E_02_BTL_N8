@@ -7,11 +7,12 @@ class FeedbackCreate(BaseModel):
     rating: int = Field(..., ge=1, le=5)  # Rating between 1 and 5
 
 class FeedbackUpdate(BaseModel):
+    order_id: int | None = None
     comment: str | None = None
     rating: int | None = Field(None, ge=1, le=5)  # Rating between 1 and 5  
 
 class FeedbackFilter(FeedbackUpdate):
-    order_id: int | None = None  
+    pass
 class FeedbackRead(BaseModel):
     id: int
     order_id: int
