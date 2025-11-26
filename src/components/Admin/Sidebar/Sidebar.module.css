@@ -1,0 +1,61 @@
+.sidebar {
+  height: 100vh;
+  background: #06345f;
+  color: #e4e8ef;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  width: 15%;
+  min-width: 180px;
+  transition: width 0.25s ease;
+  border-right: 1px solid rgba(255, 255, 255, 0.479);
+}
+
+.closed {
+  width: 70px;
+}
+
+/* top */
+.top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.toggle {
+  background: transparent;
+  border: none;
+  color: #b8c3d9;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+  /* center horizontally */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* item list */
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* When sidebar collapsed → hide labels */
+.closed :global(.label) {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}

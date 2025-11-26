@@ -1,0 +1,12 @@
+.adminContainer {
+  display: flex;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
+.adminMain {
+  flex: 1;
+  padding: 20px;
+  background-color: #f9fafb;
+  overflow-y: auto;
+}
