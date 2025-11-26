@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+__pycache__/
+*.py[cod]
+backend/payment-service-v1/.venv/
+backend/payment-service-v1/payment.db
