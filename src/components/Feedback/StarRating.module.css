@@ -1,0 +1,18 @@
+.starWrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.star {
+  cursor: pointer;
+  font-size: 32px;
+  transition: color 0.2s;
+}
+
+.active {
+  color: #ffb400;
+}
+
+.inactive {
+  color: #ccc;
+}
