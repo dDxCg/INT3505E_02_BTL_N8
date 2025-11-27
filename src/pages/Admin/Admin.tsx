@@ -1,13 +1,17 @@
 import React, { useState } from "react";
-import Sidebar, { SidebarItem } from "../../components/Admin/Sidebar/Sidebar";
-import EquipmentPage from "../../pages/Admin/Equipment/EquipmentPage";
-import IngredientPage from "../../pages/Admin/Ingredient/IngredientPage";
-import styles from "./AdminPage.module.css";
+import Sidebar, { SidebarItem } from "@/components/Admin/Sidebar/Sidebar";
+import styles from "./Admin.module.css";
+import EquipmentDashboard from "./Equipment/Dashboard";
+import IngredientDashboard from "./Ingredient/Dashboard";
 
 const AdminPage: React.FC = () => {
   const items: SidebarItem[] = [
-    { key: "equipment", label: "Equipment", component: <EquipmentPage /> },
-    { key: "ingredient", label: "Ingredient", component: <IngredientPage /> },
+    { key: "equipment", label: "Equipment", component: <EquipmentDashboard /> },
+    {
+      key: "ingredient",
+      label: "Ingredient",
+      component: <IngredientDashboard />,
+    },
     // add more sections here later
   ];
 

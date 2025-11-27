@@ -1,5 +1,5 @@
-import FeedbackPage from "./pages/Feedback/FeedbackPage";
-import AdminPage from "./pages/Admin/AdminPage";
+import FeedbackPage from "./pages/Feedback/Feedback";
+import AdminPage from "./pages/Admin/Admin";
 
 export default function App() {
   return <AdminPage />;
