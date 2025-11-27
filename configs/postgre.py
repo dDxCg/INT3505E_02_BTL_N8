@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-load_dotenv()
+ENV = os.getenv('ENV', 'local')
+dotenv_path = f".env.{ENV}"
+load_dotenv(dotenv_path)
 
 raw_db_url = os.getenv("DATABASE_URL")
 if not raw_db_url:

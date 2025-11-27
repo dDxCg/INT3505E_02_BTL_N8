@@ -27,20 +27,6 @@ async def test():
 app.include_router(api_router)
 
 
-# --- Startup: auto tạo bảng ở môi trường local ---
-@app.on_event("startup")
-async def on_startup():
-    env = os.getenv("ENV", "local")
-    if env == "local":
-        from sqlalchemy.ext.asyncio import AsyncEngine
-
-        async_engine: AsyncEngine = engine
-
-        async with async_engine.begin() as conn:
-            # Nếu quên import models bên trên, dòng này sẽ không tạo bảng nào
-            await conn.run_sync(Base.metadata.create_all)
-
-
 if __name__ == "__main__":
     import uvicorn
 
