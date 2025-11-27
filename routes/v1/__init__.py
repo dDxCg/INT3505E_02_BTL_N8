@@ -1,3 +1,4 @@
+from .payments.Payment import router as payments_router
 from .resources.Ingredient import router as ingredient_router
 from .resources.Equipment import router as equipment_router
 from .resources.EquipmentType import router as equipment_type_router
@@ -14,4 +15,5 @@ all_v1_routers = [
     ingredient_unit_router,
     ingredient_history_router,
     feedback_router,
+    payments_router,
 ]
