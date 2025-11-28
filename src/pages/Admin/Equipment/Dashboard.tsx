@@ -26,6 +26,7 @@ const EquipmentDashboard: React.FC = () => {
         activeKey={activePage.key}
         onSelect={setActivePage}
       />
+      <div style={{ padding: "16px" }}>{activePage.component}</div>
     </div>
   );
 };
