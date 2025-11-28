@@ -2,6 +2,17 @@ import React, { useState } from "react";
 import { FilterBar } from "@/components/Admin/Filter/FilterBar";
 import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
+import { Form, FormField } from "@/components/Admin/Form/Form";
+import { Popup } from "@/components/Admin/Wrapper/Popup";
+
+interface EquipmentType {
+  id: number;
+  name: string;
+}
+
+const formFields: FormField<EquipmentType>[] = [
+  { key: "name", label: "Name", type: "text" },
+];
 
 const fields: FilterField[] = [
   { key: "name", label: "Name", type: "text", col: 2 },
@@ -10,6 +21,9 @@ const fields: FilterField[] = [
 const EquipmentTypePage: React.FC = () => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [equipmentTypes, setEquipmentTypes] = useState<any[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingEquipmentType, setEditingEquipmentType] =
+    useState<EquipmentType | null>(null);
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -25,6 +39,33 @@ const EquipmentTypePage: React.FC = () => {
     // You can call your API here with the current filter values
   };
 
+  const handleEdit = (row: any) => {
+    console.log("Edit row:", row);
+    // Implement edit functionality here
+  };
+
+  const handleDelete = (row: any) => {
+    console.log("Delete row:", row);
+    // Implement delete functionality here
+  };
+
+  const handleFormSubmit = async (data: Partial<EquipmentType>) => {
+    console.log("Form submitted with data:", data);
+    // Implement form submission logic here
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+  };
+  const openAddForm = () => {
+    setEditingEquipmentType(null);
+    setShowForm(true);
+  };
+  const openEditForm = (equipmentType: EquipmentType) => {
+    setEditingEquipmentType(equipmentType);
+    setShowForm(true);
+  };
+
   return (
     <div>
       <FilterBar
@@ -35,10 +76,26 @@ const EquipmentTypePage: React.FC = () => {
       />
       <div style={{ marginTop: "16px" }}>
         <button onClick={handleSearch}>Search</button>
+        <button onClick={openAddForm} style={{ marginLeft: "16px" }}>
+          Add Equipment Type
+        </button>
       </div>
       <div style={{ marginTop: "16px" }}>
-        <Table data={equipmentTypes} />
+        <Table
+          data={equipmentTypes}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
+      <Popup open={showForm} onClose={closeForm}>
+        <Form<EquipmentType>
+          fields={formFields}
+          initialData={editingEquipmentType || {}}
+          onSubmitAdd={handleFormSubmit}
+          onSubmitEdit={handleFormSubmit}
+          onClose={closeForm}
+        />
+      </Popup>
     </div>
   );
 };
