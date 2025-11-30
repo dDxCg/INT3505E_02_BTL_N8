@@ -6,7 +6,7 @@ from .resources.EquipmentStatus import router as equipment_status_router
 from .resources.IngredientUnit import router as ingredient_unit_router
 from .resources.IngredientHistory import router as ingredient_history_router
 from .feedback.Feedback import router as feedback_router
-from .orders.Order import router as orders_router
+from .booking.Order import router as orders_router
 
 all_v1_routers = [
     equipment_router,
