@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from decimal import Decimal
 
 
 # --- OrderItem Schemas ---
@@ -22,9 +23,21 @@ class OrderItemRead(BaseModel):
     order_id: int
     dish_id: int
     dish_name: str
+    price: Decimal
     quantity: int
     status_id: int
     status: str
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class OrderItemBase(BaseModel):
+    id: int
+    order_id: int
+    dish_id: int
+    quantity: int
+    status_id: int
 
     model_config = {
         "from_attributes": True

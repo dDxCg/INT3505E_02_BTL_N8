@@ -5,8 +5,11 @@ from .resources.EquipmentType import router as equipment_type_router
 from .resources.EquipmentStatus import router as equipment_status_router
 from .resources.IngredientUnit import router as ingredient_unit_router
 from .resources.IngredientHistory import router as ingredient_history_router
+from .resources.Dish import router as dish_router
 from .feedback.Feedback import router as feedback_router
 from .booking.Order import router as orders_router
+from .booking.OrderItem import router as order_items_router
+
 
 all_v1_routers = [
     equipment_router,
@@ -18,4 +21,6 @@ all_v1_routers = [
     feedback_router,
     payments_router,
     orders_router,
+    order_items_router,
+    dish_router,
 ]

@@ -55,10 +55,13 @@ class DishRepository:
         )
         await self.db.commit()
         
-        updated_dish = await self.get_dish_by_id(dish_id)
-        return updated_dish
+        await self.db.refresh(dish)
+        return dish
     
-    async def delete_dish(self, dish_id: int) -> bool:
-        result = await self.db.execute(delete(Dish).where(Dish.id == dish_id))
+    async def delete_dish(self, dish_id: int) -> Dish | None:
+        dish = await self.get_dish_by_id(dish_id)
+        if dish is None:
+            return None
+        await self.db.execute(delete(Dish).where(Dish.id == dish_id))
         await self.db.commit()
-        return result.rowcount > 0
+        return dish
