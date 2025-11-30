@@ -9,6 +9,7 @@ from .resources.Dish import router as dish_router
 from .feedback.Feedback import router as feedback_router
 from .booking.Order import router as orders_router
 from .booking.OrderItem import router as order_items_router
+from .booking.Table import router as tables_router
 
 
 all_v1_routers = [
@@ -23,4 +24,5 @@ all_v1_routers = [
     orders_router,
     order_items_router,
     dish_router,
+    tables_router,
 ]
