@@ -1,6 +1,6 @@
 # main.py
 import os
-
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, APIRouter
 from routes.v1 import all_v1_routers
 
@@ -12,6 +12,18 @@ from models.Order import Order  # sửa path theo project thực tế
 
 app = FastAPI(title="Restaurant API", version="1.0.0")
 
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,      # tạm thời cho FE local
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 api_router = APIRouter(prefix="/api")
 
 for router in all_v1_routers:
