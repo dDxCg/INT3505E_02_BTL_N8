@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, delete, select, update
 from models import Dish
-from schemas.booking import (
+from schemas.resources import (
     DishCreate,
     DishFilter,
     DishUpdate,

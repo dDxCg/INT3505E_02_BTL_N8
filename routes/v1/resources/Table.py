@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from configs.postgre import get_db
-from repository.booking import TableRepository
-from schemas.booking import (
+from repository.resources import TableRepository
+from schemas.resources import (
     TableCreate,
     TableUpdate,
     TableRead,

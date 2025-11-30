@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from configs.postgre import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repository.booking import DishRepository
-from schemas.booking import DishCreate, DishUpdate, DishRead, DishFilter
+from repository.resources import DishRepository
+from schemas.resources import DishCreate, DishUpdate, DishRead, DishFilter
 
 router = APIRouter(prefix="/resources/dishes", tags=["Dishes"])
 
