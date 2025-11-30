@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, delete, select, update
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 from models import OrderItem
 from schemas.booking import (
     OrderItemCreate,
@@ -27,7 +27,7 @@ class OrderItemRepository:
                 selectinload(OrderItem.dish),
                 selectinload(OrderItem.status)
             )
-            .filter(OrderItem.id == order_item_id)
+            .filter(OrderItem.id == order_item_id)  
         ).scalar_one_or_none()
 
         if order_item is None:
@@ -93,3 +93,15 @@ class OrderItemRepository:
         await self.db.commit()
         return order_item
     
+    async def get_order_items_by_order_id(self, order_id: int) -> list[OrderItemRead]:
+        result = await self.db.execute(
+        select(OrderItem)
+        .options(
+            selectinload(OrderItem.dish),
+            selectinload(OrderItem.status)
+        )
+        .filter(OrderItem.order_id == order_id)
+        )
+
+        order_items = result.scalars().all()
+        return order_items

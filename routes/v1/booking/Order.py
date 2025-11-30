@@ -9,6 +9,7 @@ from schemas.booking import (
     OrderRead,
     OrderFilter,
 )
+from services.booking import OrderService
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
@@ -95,3 +96,12 @@ async def delete_order(
             detail=f"Order {order_id} not found"
         )
     return order
+
+@router.get("/{order_id}/total")
+async def get_total(
+    order_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    order_service = OrderService(db)
+    total = await order_service.calculate_total_amount(order_id)
+    return total
