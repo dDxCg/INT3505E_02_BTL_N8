@@ -13,4 +13,7 @@ class OrderStatusRead(BaseModel):
     id: int
     status: str
 
+    model_config = {
+        "from_attributes": True
+    }
 

@@ -12,3 +12,7 @@ class OrderItemStatusFilter(OrderItemStatusUpdate):
 class OrderItemStatusRead(BaseModel):
     id: int
     status: str
+
+    model_config = {
+        "from_attributes": True
+    }
