@@ -14,5 +14,5 @@ class OrderService:
         if not order_items:
             return Decimal("0.00")
 
-        total = sum(item.price * item.quantity for item in order_items)
+        total = sum(item.dish.price * item.quantity for item in order_items)
         return total

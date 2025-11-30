@@ -81,7 +81,7 @@ async def update_order(
         )
 
 
-@router.delete("/{order_id}", response_model=OrderRead)
+@router.delete("/{order_id}", response_model=OrderRead | None)
 async def delete_order(
     order_id: int,
     db: AsyncSession = Depends(get_db),

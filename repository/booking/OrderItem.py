@@ -13,22 +13,23 @@ class OrderItemRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_order_item(self, data: OrderItemCreate) -> OrderItemRead:
+    async def create_order_item(self, data: OrderItemCreate) -> OrderItem:
         order_item = OrderItem(**data.model_dump())
         self.db.add(order_item)
         await self.db.commit()
         await self.db.refresh(order_item)
-        return OrderItemRead.model_validate(order_item)
+        return order_item
 
     async def get_order_item_by_id(self, order_item_id: int) -> OrderItemRead | None:
-        order_item = await self.db.execute(
+        result = await self.db.execute(
             select(OrderItem)
             .options(
                 selectinload(OrderItem.dish),
                 selectinload(OrderItem.status)
             )
             .filter(OrderItem.id == order_item_id)  
-        ).scalar_one_or_none()
+        )
+        order_item = result.scalar_one_or_none()
 
         if order_item is None:
             return None
@@ -59,9 +60,10 @@ class OrderItemRepository:
         return [OrderItemRead.model_validate(item) for item in order_items]
     
     async def update_order_item(self, order_item_id: int, data: OrderItemUpdate) -> OrderItem | None:
-        order_item = await self.db.execute(
+        result = await self.db.execute(
             select(OrderItem).where(OrderItem.id == order_item_id)
-        ).scalar_one_or_none()
+        )
+        order_item = result.scalar_one_or_none()
 
         if order_item is None:
             return None
@@ -81,9 +83,11 @@ class OrderItemRepository:
         return order_item
     
     async def delete_order_item(self, order_item_id: int) -> OrderItem | None:
-        order_item = await self.db.execute(
+        result = await self.db.execute(
             select(OrderItem).where(OrderItem.id == order_item_id)
-        ).scalar_one_or_none()
+        )
+        order_item = result.scalar_one_or_none()
+
         if order_item is None:
             return None
 
@@ -104,4 +108,4 @@ class OrderItemRepository:
         )
 
         order_items = result.scalars().all()
-        return order_items
+        return [OrderItemRead.model_validate(item) for item in order_items]

@@ -1,8 +1,20 @@
 from pydantic import BaseModel, Field
-from decimal import Decimal
+from ..resources import DishRead
+from .OrderItemStatus import OrderItemStatusRead
 
 
 # --- OrderItem Schemas ---
+class OrderItemBase(BaseModel):
+    id: int
+    order_id: int
+    dish_id: int
+    status_id: int
+    quantity: int
+
+    model_config = {
+        "from_attributes": True
+    }
+
 class OrderItemCreate(BaseModel):
     order_id: int
     dish_id: int
@@ -18,27 +30,8 @@ class OrderItemUpdate(BaseModel):
 class OrderItemFilter(OrderItemUpdate):
     pass
 
-class OrderItemRead(BaseModel):
-    id: int
-    order_id: int
-    dish_id: int
-    dish_name: str
-    price: Decimal
-    quantity: int
-    status_id: int
-    status: str
+class OrderItemRead(OrderItemBase):
+    dish: DishRead
+    status: OrderItemStatusRead
 
-    model_config = {
-        "from_attributes": True
-    }
 
-class OrderItemBase(BaseModel):
-    id: int
-    order_id: int
-    dish_id: int
-    quantity: int
-    status_id: int
-
-    model_config = {
-        "from_attributes": True
-    }
