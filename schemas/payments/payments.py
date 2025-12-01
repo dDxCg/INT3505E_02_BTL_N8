@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from enum import Enum
 from datetime import datetime 
+from typing import Optional
 
 class Currency(str, Enum):
     VND = "VND"
@@ -56,3 +57,53 @@ class PaymentWebhookPayload(BaseModel):
 
 class PaymentRefund(BaseModel):
     amount: float | None = None 
+
+class PaymentStatusBase(BaseModel):
+    status: str
+
+class PaymentStatusCreate(PaymentStatusBase):
+    pass 
+
+class PaymentStatusUpdate(BaseModel):
+    status: Optional[str] = None
+
+class PaymentStatusRead(PaymentStatusBase):
+    id: int
+
+    class Config: 
+        from_attributes = True
+
+class PaymentMethodBase(BaseModel):
+    name: str
+
+class PaymentMethodCreate(PaymentMethodBase):
+    pass
+
+
+class PaymentMethodUpdate(PaymentMethodBase):
+    pass
+
+
+class PaymentMethodRead(PaymentMethodBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class PaymentProviderBase(BaseModel):
+    name: str
+
+
+class PaymentProviderCreate(PaymentProviderBase):
+    pass
+
+
+class PaymentProviderUpdate(BaseModel):
+    name: str
+
+
+class PaymentProviderRead(PaymentProviderBase):
+    id: int
+
+    class Config:
+        from_attributes = True
