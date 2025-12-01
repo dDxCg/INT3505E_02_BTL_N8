@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # 1) Load .env ở project root
-load_dotenv()
+ENV = os.getenv('ENV', 'local')
+dotenv_path = f".env.{ENV}"
+load_dotenv(dotenv_path)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
@@ -31,7 +33,7 @@ ssl_context.verify_mode = ssl.CERT_NONE
 
 engine = create_async_engine(
     ASYNC_DATABASE_URL,
-    echo=False,
+    echo=True,
     connect_args={"ssl": ssl_context},
 )
 
