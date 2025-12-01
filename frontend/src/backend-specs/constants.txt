@@ -1,0 +1,41 @@
+--- MOCK ID MAPPINGS (Based on Backend Migrations) ---
+
+1. ORDER STATUS (Table: order_statuses)
+ID | Status      | Color Suggestion
+---|-------------|-----------------
+1  | pending     | Yellow/Orange
+2  | served      | Blue
+3  | paid        | Green
+4  | cancelled   | Red/Gray
+
+2. PAYMENT STATUS (Enum in Code: repository/payments/payments.py)
+ID | Status      | Code Constant
+---|-------------|--------------
+1  | pending     | PAYMENT_STATUS_PENDING
+2  | success     | PAYMENT_STATUS_SUCCESS
+3  | failed      | PAYMENT_STATUS_FAILED
+4  | expired     | PAYMENT_STATUS_EXPIRED
+5  | refunded    | PAYMENT_STATUS_REFUNDED
+
+3. PAYMENT METHOD (Table: payment_methods)
+ID | Method
+---|-------
+1  | cash
+2  | mobile (App)
+3  | card
+
+4. EQUIPMENT STATUS (Table: equipment_statuses)
+ID | Status      | Color Suggestion
+---|-------------|-----------------
+1  | available   | Green
+2  | in_use      | Blue
+3  | maintenance | Orange
+4  | broken      | Red
+
+5. INGREDIENT UNIT (Table: ingredient_units)
+ID | Unit
+---|------
+1  | grams
+2  | kilograms
+3  | liters
+4  | pieces
