@@ -1,4 +1,4 @@
-from .payments.Payment import router as payments_router
+from .payments import router as payments_router
 from .resources.Ingredient import router as ingredient_router
 from .resources.Equipment import router as equipment_router
 from .resources.EquipmentType import router as equipment_type_router
