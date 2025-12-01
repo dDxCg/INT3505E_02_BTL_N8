@@ -2,15 +2,29 @@
 import os
 
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from routes.v1 import all_v1_routers
 
 from configs.postgre import engine, Base
 
-# *** IMPORT MODELS ĐỂ Base.metadata BIẾT HẾT BẢNG ***
 from models.Payment import Payment, PaymentMethod, PaymentProvider, PaymentStatus
 from models.Order import Order  # sửa path theo project thực tế
 
 app = FastAPI(title="Restaurant API", version="1.0.0")
+
+# Cấu hình CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",   
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 api_router = APIRouter(prefix="/api")
 
