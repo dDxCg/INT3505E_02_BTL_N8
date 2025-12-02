@@ -1,0 +1,11 @@
+.adminContainer {
+  display: flex;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
+.adminMain {
+  flex: 1;
+  background-color: #f9fafb;
+  overflow-y: auto;
+}
