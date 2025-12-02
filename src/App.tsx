@@ -1,6 +1,8 @@
-import FeedbackPage from "./pages/Feedback/Feedback";
-import AdminPage from "./pages/Admin/Admin";
+// src/App.tsx
+import PaymentUserScreen from "./pages/PaymentUser/PaymentUserScreen";
 
-export default function App() {
-  return <AdminPage />;
+function App() {
+  return <PaymentUserScreen />;
 }
+
+export default App;
