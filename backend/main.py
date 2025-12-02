@@ -1,16 +1,30 @@
-# main.py
-import os
+import sys
+
+major, minor = sys.version_info[:2]
+if (major, minor) < (3, 10):
+    raise RuntimeError(
+        f"Python 3.10+ required, current version: {sys.version}"
+    )
 
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from routes.v1 import all_v1_routers
 
-from configs.postgre import engine, Base
-
-# *** IMPORT MODELS ĐỂ Base.metadata BIẾT HẾT BẢNG ***
-from models.Payment import Payment, PaymentMethod, PaymentProvider, PaymentStatus
-from models.Order import Order  # sửa path theo project thực tế
-
 app = FastAPI(title="Restaurant API", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://localhost:5174", 
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",   
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 api_router = APIRouter(prefix="/api")
 
