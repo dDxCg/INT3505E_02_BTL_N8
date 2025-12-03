@@ -9,6 +9,7 @@ import GuestOrderPage from './pages/GuestOrderPage';
 // Staff Pages
 import StaffDashboard from './pages/StaffDashboard';
 import StaffTableDetail from './pages/StaffTableDetail';
+import POSPage from './pages/pos';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -35,6 +36,7 @@ function App() {
           {/* Staff Routes */}
           <Route path="/staff" element={<StaffDashboard />} />
           <Route path="/staff/table/:tableId" element={<StaffTableDetail />} />
+          <Route path="/staff/pos" element={<POSPage />} />
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/staff" replace />} />
