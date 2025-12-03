@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import PaymentUserScreen from "./pages/PaymentUser/PaymentUserScreen";
+
 
 // Guest Pages
 import GuestOrderPage from './pages/GuestOrderPage';
@@ -36,6 +38,10 @@ function App() {
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/staff" replace />} />
+
+          {/* Payment Routes */}
+          <Route path="/payment-demo" element={<PaymentUserScreen />} />
+
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
