@@ -86,7 +86,7 @@ export function POSSidebar({ currentPage }: POSSidebarProps) {
           <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shadow-md">
             <ShoppingCart size={22} className="text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-2xl font-bold text-gray-900">RestroBit</span>
+          <span className="text-2xl font-bold text-gray-900"> POS </span>
         </div>
       </div>
 
@@ -97,8 +97,8 @@ export function POSSidebar({ currentPage }: POSSidebarProps) {
             <User size={22} className="text-white" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-800">Nahid Zaman</p>
-            <p className="text-xs text-gray-400">Product Designer</p>
+            <p className="text-sm font-bold text-gray-800"> Staff </p>
+            <p className="text-xs text-gray-400"> Bill Management </p>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ export function POSSidebar({ currentPage }: POSSidebarProps) {
       {/* Logout */}
       <div className="px-6 py-5 border-t border-gray-100">
         <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all duration-200 text-left">
-          <LogOut size={20} className="text-gray-400" />
+          <LogOut size={30} className="text-gray-400" />
           <span className="text-sm font-medium">Login</span>
         </button>
       </div>
