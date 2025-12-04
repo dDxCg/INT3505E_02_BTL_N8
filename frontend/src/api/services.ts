@@ -53,22 +53,40 @@ export const ordersApi = {
 
   /**
    * Get active order for a table
-   * An active order is one that is NOT paid (status_id 5) or cancelled (status_id 6)
-   * Typically status_id 1-4 (Pending, Cooking, Served, Completed)
+   * Fetches ALL orders for the table and filters client-side
+   * An active order is one that is in PENDING (1) or COOKING (2) status
+   * Status 3 (COMPLETED), 4 (PAID), 5 (CANCELLED) are NOT active
+   *
+   * Returns the LATEST active order (highest ID) if multiple exist
    */
   getActiveOrder: async (tableId: number): Promise<OrderRead | null> => {
     try {
+      // Fetch ALL orders for this table without status filtering
       const response = await apiClient.get<OrderRead[]>('/orders', {
         params: { table_id: tableId },
       });
       const orders = response.data;
 
-      // Find an active order (status_id between 1-4, not paid/cancelled)
-      const activeOrder = orders.find(
-        (order) => order.status_id && order.status_id >= 1 && order.status_id <= 4
+      if (!orders || orders.length === 0) {
+        return null;
+      }
+
+      // Filter for active orders only (PENDING: 1, COOKING: 2)
+      // Exclude COMPLETED (3), PAID (4), CANCELLED (5)
+      const activeOrders = orders.filter(
+        (order) => order.status_id && order.status_id >= 1 && order.status_id <= 2
       );
 
-      return activeOrder || null;
+      if (activeOrders.length === 0) {
+        return null;
+      }
+
+      // Return the latest active order (highest ID, most recent)
+      const latestActiveOrder = activeOrders.reduce((latest, current) => {
+        return current.id > latest.id ? current : latest;
+      });
+
+      return latestActiveOrder;
     } catch (error) {
       console.error('Error fetching active order:', error);
       return null;

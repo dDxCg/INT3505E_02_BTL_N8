@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { ShoppingCart, Plus, Minus, ArrowLeft, X, ChevronRight, Trash2 } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, ArrowLeft, X, ChevronRight, Trash2, CheckCircle } from 'lucide-react';
 import { useDishes, useCreateOrder, useCreateOrderItem, useOrders, useOrderItems } from '../../hooks/useApi';
 import { useCartStore } from '../../stores/cartStore';
 import type { Dish, OrderRead, OrderItemRead } from '../../types';
@@ -41,30 +41,113 @@ export default function GuestOrderPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [activeOrder, setActiveOrder] = useState<OrderRead | null>(null);
   const [orderedItems, setOrderedItems] = useState<OrderItemRead[]>([]);
+  const [showResetNotification, setShowResetNotification] = useState(false);
+  const hasShownResetRef = useRef(false);
 
   const { data: dishes, isLoading, error } = useDishes();
-  const { data: orders } = useOrders({ table_id: tableId });
+
+  // Enable polling to detect when staff closes the table
+  const { data: orders, isLoading: ordersLoading, isFetching: ordersFetching } = useOrders(
+    { table_id: tableId },
+    {
+      enabled: !!tableId && tableId > 0,
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: true,
+      refetchInterval: 5000, // Poll every 5 seconds to detect table closure
+      refetchIntervalInBackground: true, // Keep polling even when tab is in background
+    }
+  );
+
   const { items, addItem, updateQuantity, removeItem, clearCart, getTotalPrice, getTotalItems } = useCartStore();
 
   // Fetch order items for the active order
   const { data: fetchedOrderItems } = useOrderItems(
-    activeOrder ? { order_id: activeOrder.id } : undefined
+    activeOrder ? { order_id: activeOrder.id } : undefined,
+    {
+      enabled: !!activeOrder,
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: true,
+      refetchInterval: 5000, // Poll every 5 seconds to update item statuses
+      refetchIntervalInBackground: true,
+    }
   );
 
   const createOrder = useCreateOrder();
   const createOrderItem = useCreateOrderItem();
 
-  // Check for active orders (status_id 1-4, not paid/cancelled)
+  // Check for active orders (status_id 1-2: pending/cooking only)
+  // Status 3+ means served/completed/paid/cancelled
   useEffect(() => {
     if (orders && orders.length > 0) {
       const active = orders.find(order =>
-        order.status_id && order.status_id >= 1 && order.status_id <= 4
+        order.status_id && order.status_id >= 1 && order.status_id <= 2
       );
       setActiveOrder(active || null);
     } else {
       setActiveOrder(null);
     }
   }, [orders]);
+
+  // AUTO-RESET: Detect when staff closes the table and reset the guest view
+  useEffect(() => {
+    // STRICT GUARDS: Do NOT reset while loading or fetching
+    if (ordersLoading || ordersFetching) {
+      console.log('[GUEST MENU] Skipping reset check - data is loading');
+      return;
+    }
+
+    // Skip if we've already shown the reset notification for this session
+    if (hasShownResetRef.current) return;
+
+    // Guard: Must have valid tableId and orders data
+    if (!tableId || !orders) {
+      console.log('[GUEST MENU] Skipping reset check - no tableId or orders data');
+      return;
+    }
+
+    // Check if we have any orders at all
+    if (orders.length === 0) {
+      // No orders exist for this table yet - this is normal for new guests
+      console.log('[GUEST MENU] No orders exist yet - this is normal');
+      return;
+    }
+
+    // Check if any order has been completed/paid/cancelled (status_id >= 3)
+    const hasCompletedOrder = orders.some(order =>
+      order.status_id && order.status_id >= 3
+    );
+
+    // Check if there's no active order (status_id 1-2)
+    const noActiveOrder = !activeOrder;
+
+    // ONLY reset if we have completed orders AND no active order
+    // This means staff has definitively closed the table
+    if (hasCompletedOrder && noActiveOrder) {
+      console.log('[GUEST MENU] Table closed by staff - Auto-resetting...');
+      console.log('- Has completed order:', hasCompletedOrder);
+      console.log('- No active order:', noActiveOrder);
+      console.log('- Orders:', orders.map(o => ({ id: o.id, status: o.status_id })));
+
+      // Clear cart
+      clearCart();
+
+      // Clear any localStorage cart data
+      try {
+        localStorage.removeItem('restaurant-cart-storage');
+      } catch (error) {
+        console.error('Failed to clear cart storage:', error);
+      }
+
+      // Show reset notification
+      setShowResetNotification(true);
+      hasShownResetRef.current = true;
+
+      // Auto-hide notification after 4 seconds (user stays on menu page)
+      setTimeout(() => {
+        setShowResetNotification(false);
+      }, 4000);
+    }
+  }, [activeOrder, orders, ordersLoading, ordersFetching, tableId, clearCart]);
 
   // Update ordered items when fetched
   useEffect(() => {
@@ -239,6 +322,22 @@ export default function GuestOrderPage() {
 
   return (
     <div className="guest-order-page">
+      {/* Reset Notification Overlay */}
+      {showResetNotification && (
+        <div className="reset-notification-overlay">
+          <div className="reset-notification-content">
+            <div className="reset-icon-wrapper">
+              <CheckCircle size={64} className="reset-icon" />
+            </div>
+            <h2 className="reset-title">Bàn đã đóng</h2>
+            <p className="reset-message">
+              Bàn của bạn đã được đóng bởi nhân viên.<br />
+              Sẵn sàng cho đơn hàng mới!
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Sticky Header */}
       <header className="sticky-header">
         <div className="header-top">
