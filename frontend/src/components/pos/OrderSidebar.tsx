@@ -18,6 +18,7 @@ interface OrderSidebarProps {
   onBillPayment: () => void;
   onBillPrint: () => void;
   loading?: boolean;
+  newOrderTables?: Set<number>;
 }
 
 export function OrderSidebar({
@@ -32,7 +33,8 @@ export function OrderSidebar({
   onDraft,
   onBillPayment,
   onBillPrint,
-  loading
+  loading,
+  newOrderTables = new Set()
 }: OrderSidebarProps) {
   // Calculate totals
   const subtotal = orderItems.reduce(
@@ -75,16 +77,23 @@ export function OrderSidebar({
               Select Table
             </label>
             <Select
-              className="h-11"
+              className={`h-11 ${newOrderTables.size > 0 ? 'animate-pulse-border' : ''}`}
               value={selectedTableId || ''}
               onChange={(e) => onTableChange(Number(e.target.value))}
             >
               <option value="">Select Table</option>
-              {tables.map((table) => (
-                <option key={table.id} value={table.id}>
-                  Table #{table.number} ({table.seats} seats)
-                </option>
-              ))}
+              {tables.map((table) => {
+                const hasNewOrder = newOrderTables.has(table.id);
+                return (
+                  <option
+                    key={table.id}
+                    value={table.id}
+                    style={hasNewOrder ? { fontWeight: 'bold', color: '#16a34a' } : {}}
+                  >
+                    {hasNewOrder ? '🔔 ' : ''}Table #{table.number} ({table.seats} seats){hasNewOrder ? ' - NEW ORDER!' : ''}
+                  </option>
+                );
+              })}
             </Select>
           </div>
         </div>

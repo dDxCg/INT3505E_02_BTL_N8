@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, QrCode, FileText, Table2 } from 'lucide-react';
+import { Search, Plus, QrCode, FileText, Table2, Activity, Bell } from 'lucide-react';
 import { Input } from '../../components/ui/input';
+import { Toaster } from '../../components/ui/toaster';
+import { toast } from '../../components/ui/use-toast';
 
 // ===== PRESERVE: Existing API imports =====
 import {
@@ -45,12 +47,22 @@ export default function POSPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('Show All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ===== NEW: Live sync indicator =====
+  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // ===== NEW: Change detection for new orders =====
+  const previousTablesRef = useRef<TableRead[]>([]);
+  const previousOrderItemsRef = useRef<OrderItemRead[]>([]);
+  const [newOrderTables, setNewOrderTables] = useState<Set<number>>(new Set());
+
   const categories = ['Show All'];
 
   // ===== PRESERVE: Fetch table data (existing logic) =====
   const fetchTableData = async (tableId: number) => {
     try {
       setLoading(true);
+      setIsSyncing(true);
 
       // Fetch table info and active orders
       const [tableData, orders] = await Promise.all([
@@ -66,15 +78,33 @@ export default function POSPage() {
 
         // Fetch order items
         const items = await getOrderItems(order.id);
+
+        // Detect new items added to this order
+        if (previousOrderItemsRef.current.length > 0 && items.length > previousOrderItemsRef.current.length) {
+          const newItemsCount = items.length - previousOrderItemsRef.current.length;
+
+          toast({
+            variant: 'success',
+            title: '🍽️ New Items Added!',
+            description: `${newItemsCount} new item(s) added to Table ${tableData.number}`,
+          });
+        }
+
+        previousOrderItemsRef.current = items;
         setOrderItems(items);
       } else {
         setActiveOrder(null);
         setOrderItems([]);
+        previousOrderItemsRef.current = [];
       }
+
+      // Update sync time
+      setLastSyncTime(new Date());
     } catch (error) {
       console.error('Failed to fetch table data:', error);
     } finally {
       setLoading(false);
+      setIsSyncing(false);
     }
   };
 
@@ -94,10 +124,71 @@ export default function POSPage() {
   // ===== NEW: Fetch all tables =====
   const fetchTables = async () => {
     try {
+      setIsSyncing(true);
       const tablesData = await getTables();
+
+      // Detect new orders by comparing with previous state
+      if (previousTablesRef.current.length > 0) {
+        const previousTables = previousTablesRef.current;
+
+        // Check each table for new or updated orders
+        for (const newTable of tablesData) {
+          const previousTable = previousTables.find(t => t.id === newTable.id);
+
+          // If table didn't have an order before but has one now
+          if (previousTable && !previousTable.current_order_id && newTable.current_order_id) {
+            // New order detected
+            console.log('[POS] NEW ORDER DETECTED for table:', newTable.number);
+            setNewOrderTables(prev => new Set(prev).add(newTable.id));
+
+            // Show toast notification
+            console.log('[POS] Showing toast notification...');
+            toast({
+              variant: 'success',
+              title: '🔔 New Order Received!',
+              description: `Table ${newTable.number} has placed a new order`,
+            });
+            console.log('[POS] Toast called successfully');
+
+            // Play sound alert using Web Audio API
+            try {
+              const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+              const oscillator = audioContext.createOscillator();
+              const gainNode = audioContext.createGain();
+
+              oscillator.connect(gainNode);
+              gainNode.connect(audioContext.destination);
+
+              oscillator.frequency.value = 800;
+              oscillator.type = 'sine';
+              gainNode.gain.value = 0.1;
+
+              oscillator.start(audioContext.currentTime);
+              oscillator.stop(audioContext.currentTime + 0.2);
+            } catch (error) {
+              console.log('[POS] Audio not supported:', error);
+            }
+
+            // Remove highlight after 10 seconds
+            setTimeout(() => {
+              setNewOrderTables(prev => {
+                const updated = new Set(prev);
+                updated.delete(newTable.id);
+                return updated;
+              });
+            }, 10000);
+          }
+        }
+      }
+
+      // Update previous tables reference
+      previousTablesRef.current = tablesData;
       setTables(tablesData);
+      setLastSyncTime(new Date());
     } catch (error) {
       console.error('Failed to fetch tables:', error);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -107,18 +198,25 @@ export default function POSPage() {
 
     fetchTableData(selectedTableId);
 
-    // Auto-refresh every 3 seconds
+    // Auto-refresh every 5 seconds
     const interval = setInterval(() => {
       fetchTableData(selectedTableId);
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [selectedTableId]);
 
-  // ===== Initialize: Fetch dishes and tables on mount =====
+  // ===== NEW: Auto-refresh tables list (for new orders from guests) =====
   useEffect(() => {
     fetchDishes();
     fetchTables();
+
+    // Poll tables list every 10 seconds to catch new guest orders
+    const tablesInterval = setInterval(() => {
+      fetchTables();
+    }, 10000);
+
+    return () => clearInterval(tablesInterval);
   }, []);
 
   // ===== NEW: Add dish to order =====
@@ -280,7 +378,16 @@ export default function POSPage() {
         <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900"> Restaurant POS</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-gray-900"> Restaurant POS</h1>
+                <div className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-full">
+                  <Activity
+                    size={14}
+                    className={`text-green-600 ${isSyncing ? 'animate-pulse' : ''}`}
+                  />
+                  <span className="text-xs font-medium text-green-700">Live Sync: ON</span>
+                </div>
+              </div>
               <p className="text-sm text-gray-500 mt-1">Dashboard • Pos</p>
             </div>
 
@@ -363,7 +470,11 @@ export default function POSPage() {
         onBillPayment={handleBillPayment}
         onBillPrint={handleBillPrint}
         loading={loading}
+        newOrderTables={newOrderTables}
       />
+
+      {/* Toast Notifications */}
+      <Toaster />
     </div>
   );
 }
