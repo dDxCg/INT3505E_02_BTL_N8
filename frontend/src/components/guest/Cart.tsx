@@ -1,7 +1,9 @@
 import { Trash2, Minus, Plus, ShoppingCart, X } from 'lucide-react';
 import { useCartStore } from '../../stores/cartStore';
-import { useCreateOrder, useCreateOrderItem } from '../../hooks/useApi';
-import { useState } from 'react';
+import { useCreateOrder, useCreateOrderItem, useOrders } from '../../hooks/useApi';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { OrderRead } from '../../types';
 
 interface CartProps {
   tableId: number;
@@ -9,39 +11,66 @@ interface CartProps {
 }
 
 export const Cart = ({ tableId, onClose }: CartProps) => {
+  const navigate = useNavigate();
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice, getTotalItems } =
     useCartStore();
   const createOrder = useCreateOrder();
   const createOrderItem = useCreateOrderItem();
+  const { data: orders } = useOrders({ table_id: tableId });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeOrder, setActiveOrder] = useState<OrderRead | null>(null);
+
+  // Check for active orders (status_id 1-4, not paid/cancelled)
+  useEffect(() => {
+    if (orders && orders.length > 0) {
+      const active = orders.find(order =>
+        order.status_id && order.status_id >= 1 && order.status_id <= 4
+      );
+      setActiveOrder(active || null);
+    } else {
+      setActiveOrder(null);
+    }
+  }, [orders]);
 
   const handleSubmitOrder = async () => {
     if (items.length === 0) return;
 
     setIsSubmitting(true);
     try {
-      // Step 1: Create order
-      const orderResponse = await createOrder.mutateAsync({
-        table_id: tableId,
-        status_id: 1, // pending
-      });
+      // Step 1: Check if there's an active order for this table
+      let orderId: number;
 
-      const orderId = orderResponse.data.id;
+      if (activeOrder) {
+        // Use existing active order
+        orderId = activeOrder.id;
+      } else {
+        // Create new order
+        const orderResponse = await createOrder.mutateAsync({
+          table_id: tableId,
+          status_id: 1, // Pending
+        });
+        orderId = orderResponse.data.id;
+      }
 
-      // Step 2: Create order items
+      // Step 2: Add all items to the order (existing or new)
       for (const item of items) {
         await createOrderItem.mutateAsync({
           order_id: orderId,
           dish_id: item.dish.id,
           quantity: item.quantity,
-          status_id: 1, // pending
+          status_id: 1, // Pending
         });
       }
 
       // Step 3: Clear cart and show success
       clearCart();
-      alert('Đã gửi order đến bếp thành công!');
+      alert(activeOrder ? 'Món mới đã được thêm vào đơn!' : 'Đã gửi order đến bếp thành công!');
       onClose?.();
+
+      // Redirect to My Order page
+      setTimeout(() => {
+        navigate(`/my-order/${tableId}`);
+      }, 500);
     } catch (error) {
       console.error('Failed to submit order:', error);
       alert('Có lỗi xảy ra khi gửi order. Vui lòng thử lại.');
@@ -148,7 +177,10 @@ export const Cart = ({ tableId, onClose }: CartProps) => {
           disabled={isSubmitting}
           className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors"
         >
-          {isSubmitting ? 'Đang gửi...' : 'Gửi order đến bếp'}
+          {isSubmitting
+            ? (activeOrder ? 'Đang thêm món...' : 'Đang gửi...')
+            : (activeOrder ? 'Thêm vào đơn hàng' : 'Gửi order đến bếp')
+          }
         </button>
 
         <button

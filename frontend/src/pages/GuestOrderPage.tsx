@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Loader2, CheckCircle } from 'lucide-react';
 import { useCartStore } from '../store/cart';
 import {
   getDishes,
-  getOrderByTable,
   createOrder,
   addOrderItem,
 } from '../services/api';
+import { ordersApi } from '../api/services';
 import type { DishRead, OrderRead } from '../types/schema';
 
 export default function GuestOrderPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const tableId = parseInt(searchParams.get('tableId') || '0');
 
   // State
@@ -102,15 +103,15 @@ export default function GuestOrderPage() {
     try {
       setSubmitting(true);
 
-      // Step 1: Check if table already has active order
-      const existingOrders = await getOrderByTable(tableId, 1); // status_id=1 (pending)
+      // Step 1: Check if there's an active order for this table
+      const activeOrder = await ordersApi.getActiveOrder(tableId);
       let orderId: number;
 
-      if (existingOrders.length > 0) {
-        // Use existing order
-        orderId = existingOrders[0].id;
+      if (activeOrder) {
+        // Branch B: Use existing active order
+        orderId = activeOrder.id;
       } else {
-        // Create new order
+        // Branch A: Create new order
         const newOrder = await createOrder({
           table_id: tableId,
           status_id: 1, // Pending
@@ -118,7 +119,7 @@ export default function GuestOrderPage() {
         orderId = newOrder.id;
       }
 
-      // Step 2: Add all items from cart to order
+      // Step 2: Add all items from cart to order (existing or new)
       for (const item of cartItems) {
         await addOrderItem({
           order_id: orderId,
@@ -130,7 +131,16 @@ export default function GuestOrderPage() {
 
       // Step 3: Clear cart and show success
       clearCart();
-      showToastMessage('✅ Gọi món thành công! Món sẽ được phục vụ sớm.');
+      showToastMessage(
+        activeOrder
+          ? '✅ Món mới đã được thêm vào đơn!'
+          : '✅ Gọi món thành công! Món sẽ được phục vụ sớm.'
+      );
+
+      // Step 4: Redirect to My Order page
+      setTimeout(() => {
+        navigate(`/guest/my-order?tableId=${tableId}`);
+      }, 1500);
     } catch (error) {
       console.error('Failed to submit order:', error);
       showToastMessage('❌ Gọi món thất bại. Vui lòng thử lại.');

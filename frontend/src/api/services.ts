@@ -50,14 +50,68 @@ export const ordersApi = {
     apiClient.put<OrderRead>(`/orders/${id}`, data),
   delete: (id: number) => apiClient.delete<OrderRead>(`/orders/${id}`),
   getTotal: (id: number) => apiClient.get<number>(`/orders/${id}/total`),
+
+  /**
+   * Get active order for a table
+   * Fetches ALL orders for the table and filters client-side
+   * An active order is one that is in PENDING (1) or COOKING (2) status
+   * Status 3 (COMPLETED), 4 (PAID), 5 (CANCELLED) are NOT active
+   *
+   * Returns the LATEST active order (highest ID) if multiple exist
+   */
+  getActiveOrder: async (tableId: number): Promise<OrderRead | null> => {
+    try {
+      // Fetch ALL orders for this table without status filtering
+      const response = await apiClient.get<OrderRead[]>('/orders', {
+        params: { table_id: tableId },
+      });
+      const orders = response.data;
+
+      if (!orders || orders.length === 0) {
+        return null;
+      }
+
+      // Filter for active orders only (PENDING: 1, COOKING: 2)
+      // Exclude COMPLETED (3), PAID (4), CANCELLED (5)
+      const activeOrders = orders.filter(
+        (order) => order.status_id && order.status_id >= 1 && order.status_id <= 2
+      );
+
+      if (activeOrders.length === 0) {
+        return null;
+      }
+
+      // Return the latest active order (highest ID, most recent)
+      const latestActiveOrder = activeOrders.reduce((latest, current) => {
+        return current.id > latest.id ? current : latest;
+      });
+
+      return latestActiveOrder;
+    } catch (error) {
+      console.error('Error fetching active order:', error);
+      return null;
+    }
+  },
 };
 
 // ============================================
 // Order Items API
 // ============================================
 export const orderItemsApi = {
+  /**
+   * Add item to an existing order
+   * POST /orders/items/
+   * Payload: { order_id, dish_id, quantity, status_id }
+   */
   create: (data: OrderItemCreate) =>
     apiClient.post<OrderItem>('/orders/items/', data),
+
+  /**
+   * Alias for create - more semantic when adding items to existing orders
+   */
+  addToOrder: (data: OrderItemCreate) =>
+    apiClient.post<OrderItem>('/orders/items/', data),
+
   getAll: (filters?: OrderItemFilter) =>
     apiClient.get<OrderItemRead[]>('/orders/items/', { params: filters }),
   getById: (id: number) => apiClient.get<OrderItemRead>(`/orders/items/${id}`),

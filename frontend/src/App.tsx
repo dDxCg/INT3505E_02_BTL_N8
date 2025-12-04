@@ -3,7 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import PaymentUserScreen from './pages/PaymentUser/PaymentUserScreen';
 
 // Guest Pages
-import GuestOrderPage from './pages/GuestOrderPage';
+import GuestOrderPage from './pages/guest';
+import MyOrderPage from './pages/guest/my-order';
 
 // Staff Pages
 import StaffDashboard from './pages/StaffDashboard';
@@ -30,6 +31,9 @@ function App() {
 
           {/* Guest Routes */}
           <Route path="/order" element={<GuestOrderPage />} />
+          <Route path="/order/:tableId" element={<GuestOrderPage />} />
+          <Route path="/my-order" element={<MyOrderPage />} />
+          <Route path="/my-order/:tableId" element={<MyOrderPage />} />
 
           {/* Staff Routes */}
           <Route path="/staff" element={<StaffDashboard />} />

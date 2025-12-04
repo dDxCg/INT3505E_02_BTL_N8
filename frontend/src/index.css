@@ -41,3 +41,66 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Pulse border animation for new orders */
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+  }
+  50% {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.2);
+  }
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2s ease-in-out infinite;
+  border: 2px solid #16a34a !important;
+}
+
+/* Toast animations */
+@keyframes toast-slide-in-right {
+  from {
+    transform: translateX(calc(100% + 1rem));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-slide-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(100% + 1rem));
+  }
+}
+
+@keyframes toast-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toast-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Apply toast animations */
+[data-state="open"] {
+  animation: toast-slide-in-right 0.3s ease-out, toast-fade-in 0.3s ease-out;
+}
+
+[data-state="closed"] {
+  animation: toast-slide-out-right 0.3s ease-in, toast-fade-out 0.3s ease-in;
+}
