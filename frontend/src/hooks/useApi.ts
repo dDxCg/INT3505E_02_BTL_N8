@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import {
   tablesApi,
   dishesApi,
@@ -72,13 +72,17 @@ export const useDish = (id: number) => {
 // ============================================
 // Orders Hooks
 // ============================================
-export const useOrders = (filters?: OrderFilter) => {
+export const useOrders = (
+  filters?: OrderFilter,
+  options?: Omit<UseQueryOptions<OrderRead[], Error>, 'queryKey' | 'queryFn'>
+) => {
   return useQuery({
     queryKey: ['orders', filters],
     queryFn: async () => {
       const response = await ordersApi.getAll(filters);
       return response.data;
     },
+    ...options,
   });
 };
 
@@ -139,13 +143,17 @@ export const useDeleteOrder = () => {
 // ============================================
 // Order Items Hooks
 // ============================================
-export const useOrderItems = (filters?: OrderItemFilter) => {
+export const useOrderItems = (
+  filters?: OrderItemFilter,
+  options?: Omit<UseQueryOptions<OrderItemRead[], Error>, 'queryKey' | 'queryFn'>
+) => {
   return useQuery({
     queryKey: ['orderItems', filters],
     queryFn: async () => {
       const response = await orderItemsApi.getAll(filters);
       return response.data;
     },
+    ...options,
   });
 };
 
@@ -165,10 +173,14 @@ export const useCreateOrderItem = () => {
   return useMutation({
     mutationFn: (data: OrderItemCreate) => orderItemsApi.create(data),
     onSuccess: (_, variables) => {
+      // Invalidate all order items queries to ensure the new item appears
       queryClient.invalidateQueries({ queryKey: ['orderItems'] });
+      // Invalidate the specific order to update its total/status
       queryClient.invalidateQueries({
         queryKey: ['orders', variables.order_id],
       });
+      // Invalidate all orders to ensure any listing pages are updated
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });
 };

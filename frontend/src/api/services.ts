@@ -50,14 +50,50 @@ export const ordersApi = {
     apiClient.put<OrderRead>(`/orders/${id}`, data),
   delete: (id: number) => apiClient.delete<OrderRead>(`/orders/${id}`),
   getTotal: (id: number) => apiClient.get<number>(`/orders/${id}/total`),
+
+  /**
+   * Get active order for a table
+   * An active order is one that is NOT paid (status_id 5) or cancelled (status_id 6)
+   * Typically status_id 1-4 (Pending, Cooking, Served, Completed)
+   */
+  getActiveOrder: async (tableId: number): Promise<OrderRead | null> => {
+    try {
+      const response = await apiClient.get<OrderRead[]>('/orders', {
+        params: { table_id: tableId },
+      });
+      const orders = response.data;
+
+      // Find an active order (status_id between 1-4, not paid/cancelled)
+      const activeOrder = orders.find(
+        (order) => order.status_id && order.status_id >= 1 && order.status_id <= 4
+      );
+
+      return activeOrder || null;
+    } catch (error) {
+      console.error('Error fetching active order:', error);
+      return null;
+    }
+  },
 };
 
 // ============================================
 // Order Items API
 // ============================================
 export const orderItemsApi = {
+  /**
+   * Add item to an existing order
+   * POST /orders/items/
+   * Payload: { order_id, dish_id, quantity, status_id }
+   */
   create: (data: OrderItemCreate) =>
     apiClient.post<OrderItem>('/orders/items/', data),
+
+  /**
+   * Alias for create - more semantic when adding items to existing orders
+   */
+  addToOrder: (data: OrderItemCreate) =>
+    apiClient.post<OrderItem>('/orders/items/', data),
+
   getAll: (filters?: OrderItemFilter) =>
     apiClient.get<OrderItemRead[]>('/orders/items/', { params: filters }),
   getById: (id: number) => apiClient.get<OrderItemRead>(`/orders/items/${id}`),

@@ -63,6 +63,46 @@
   width: 2.5rem;
 }
 
+.refresh-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary, #2C2416);
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: var(--color-border, #E8E3DC);
+}
+
+.refresh-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-button.spinning svg {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Main Content */
 .order-content {
   max-width: 42rem;

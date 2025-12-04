@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, CheckCircle, ChefHat, Loader2, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle, ChefHat, Loader2, UtensilsCrossed, RefreshCw } from 'lucide-react';
 import { useOrders, useOrderItems, useOrderStatuses, useOrderItemStatuses } from '../../hooks/useApi';
 import type { OrderRead, OrderItemRead } from '../../types';
 import './my-order-styles.css';
@@ -38,13 +38,37 @@ export default function MyOrderPage() {
 
   const [activeOrder, setActiveOrder] = useState<OrderRead | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItemRead[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch orders for this table
-  const { data: orders, isLoading: ordersLoading } = useOrders({ table_id: tableId });
+  // Fetch orders for this table with refetch capability
+  // Always enabled when we have a valid tableId
+  const {
+    data: orders,
+    isLoading: ordersLoading,
+    refetch: refetchOrders,
+    isFetching: ordersFetching
+  } = useOrders(
+    { table_id: tableId },
+    {
+      enabled: !!tableId && tableId > 0,
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: true,
+    }
+  );
 
-  // Fetch order items if we have an active order
-  const { data: items, isLoading: itemsLoading } = useOrderItems(
-    activeOrder ? { order_id: activeOrder.id } : undefined
+  // Fetch order items if we have an active order with refetch capability
+  const {
+    data: items,
+    isLoading: itemsLoading,
+    refetch: refetchItems,
+    isFetching: itemsFetching
+  } = useOrderItems(
+    activeOrder ? { order_id: activeOrder.id } : undefined,
+    {
+      enabled: !!activeOrder,
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: true,
+    }
   );
 
   const { data: orderStatuses } = useOrderStatuses();
@@ -67,6 +91,58 @@ export default function MyOrderPage() {
       setOrderItems(items);
     }
   }, [items]);
+
+  // Refresh handler - refetches both orders and items
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchOrders();
+      if (activeOrder) {
+        await refetchItems();
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Pull-to-refresh functionality
+  useEffect(() => {
+    let startY = 0;
+    let currentY = 0;
+    const threshold = 80;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0) {
+        startY = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (window.scrollY === 0 && startY > 0) {
+        currentY = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (currentY - startY > threshold) {
+        handleRefresh();
+      }
+      startY = 0;
+      currentY = 0;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [activeOrder]);
 
   const calculateTotal = () => {
     return orderItems.reduce((total, item) => {
@@ -157,7 +233,14 @@ export default function MyOrderPage() {
           <ArrowLeft size={20} />
         </button>
         <h1 className="page-title">Đơn hàng của tôi</h1>
-        <div className="header-spacer"></div>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing || ordersFetching || itemsFetching}
+          className={`refresh-button ${isRefreshing || ordersFetching || itemsFetching ? 'spinning' : ''}`}
+          aria-label="Refresh order"
+        >
+          <RefreshCw size={20} />
+        </button>
       </header>
 
       <main className="order-content">
