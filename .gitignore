@@ -1,0 +1,18 @@
+# --- Python General ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual Environments ---
+# Pipenv creates .venv automatically in some configs
+.venv/
+env/
+venv/
+
+# --- Environment Variables (Crucial for RAG apps) ---
+# Never commit your API keys (OpenAI, etc.)
+.env
+
+# Ignore the ChromaDB persistence folder
+recipe_db/
+*.sqlite3
