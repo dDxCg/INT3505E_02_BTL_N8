@@ -247,7 +247,6 @@
   text-overflow: ellipsis;
 }
 
-
 .history-table-wrapper {
   border-radius: 12px;
   border: 1px solid #e5e7eb;
@@ -276,6 +275,54 @@
 
 .history-table tbody tr:nth-child(even) {
   background: #f9fafb;
+}
+
+/* Cụm nút xác nhận trạng thái */
+.status-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-actions-label {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.status-actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-btn.success {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.status-btn.failed {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.status-btn.expired {
+  background: #6b7280;
+  color: #ffffff;
+}
+
+.status-btn.refunded {
+  background: #0891b2;
+  color: #ffffff;
 }
 
 @media (max-width: 640px) {

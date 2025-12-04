@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Plus, QrCode, FileText, Table2 } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 
-// ===== PRESERVE: Existing API imports =====
+// ===== API imports =====
 import {
   getTables,
   getTableById,
@@ -14,13 +14,12 @@ import {
   addOrderItem,
   updateItemStatus,
   deleteOrderItem,
-  updateOrder,
 } from '../../services/api';
 
-// ===== PRESERVE: Existing type imports =====
+// ===== type imports =====
 import type { TableRead, OrderRead, OrderItemRead, DishRead } from '../../types/schema';
 
-// ===== NEW: Component imports =====
+// ===== Component imports =====
 import { POSSidebar } from '../../components/pos/POSSidebar';
 import { CategoryTabs } from '../../components/pos/CategoryTabs';
 import { DishGrid } from '../../components/pos/DishGrid';
@@ -29,7 +28,7 @@ import { OrderSidebar } from '../../components/pos/OrderSidebar';
 export default function POSPage() {
   const navigate = useNavigate();
 
-  // ===== PRESERVE: Existing state from StaffTableDetail.tsx =====
+  // ===== state =====
   const [tables, setTables] = useState<TableRead[]>([]);
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
   const [table, setTable] = useState<TableRead | null>(null);
@@ -39,7 +38,6 @@ export default function POSPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
 
-  // ===== NEW: Dish browsing state =====
   const [dishes, setDishes] = useState<DishRead[]>([]);
   const [dishesLoading, setDishesLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('Show All');
@@ -47,12 +45,11 @@ export default function POSPage() {
 
   const categories = ['Show All'];
 
-  // ===== PRESERVE: Fetch table data (existing logic) =====
+  // ===== Fetch table data =====
   const fetchTableData = async (tableId: number) => {
     try {
       setLoading(true);
 
-      // Fetch table info and active orders
       const [tableData, orders] = await Promise.all([
         getTableById(tableId),
         getOrderByTable(tableId, 1), // status_id=1 (pending/active)
@@ -64,7 +61,6 @@ export default function POSPage() {
         const order = orders[0];
         setActiveOrder(order);
 
-        // Fetch order items
         const items = await getOrderItems(order.id);
         setOrderItems(items);
       } else {
@@ -78,7 +74,7 @@ export default function POSPage() {
     }
   };
 
-  // ===== NEW: Fetch dishes =====
+  // ===== Fetch dishes =====
   const fetchDishes = async () => {
     try {
       setDishesLoading(true);
@@ -91,7 +87,7 @@ export default function POSPage() {
     }
   };
 
-  // ===== NEW: Fetch all tables =====
+  // ===== Fetch all tables =====
   const fetchTables = async () => {
     try {
       const tablesData = await getTables();
@@ -101,13 +97,12 @@ export default function POSPage() {
     }
   };
 
-  // ===== PRESERVE: Auto-refresh when table selected =====
+  // ===== Auto-refresh when table selected =====
   useEffect(() => {
     if (!selectedTableId) return;
 
     fetchTableData(selectedTableId);
 
-    // Auto-refresh every 3 seconds
     const interval = setInterval(() => {
       fetchTableData(selectedTableId);
     }, 3000);
@@ -115,13 +110,13 @@ export default function POSPage() {
     return () => clearInterval(interval);
   }, [selectedTableId]);
 
-  // ===== Initialize: Fetch dishes and tables on mount =====
+  // ===== Init =====
   useEffect(() => {
     fetchDishes();
     fetchTables();
   }, []);
 
-  // ===== NEW: Add dish to order =====
+  // ===== Add dish to order =====
   const handleAddDish = async (dish: DishRead) => {
     if (!selectedTableId) {
       alert('Please select a table first');
@@ -131,7 +126,6 @@ export default function POSPage() {
     try {
       setActionLoading(dish.id);
 
-      // If no active order, create one first
       if (!activeOrder) {
         const newOrder = await createOrder({
           table_id: selectedTableId,
@@ -139,24 +133,21 @@ export default function POSPage() {
         });
         setActiveOrder(newOrder);
 
-        // Add item to the new order
         await addOrderItem({
           order_id: newOrder.id,
           dish_id: dish.id,
           quantity: 1,
-          status_id: 1, // Pending
+          status_id: 1,
         });
       } else {
-        // Add item to existing order
         await addOrderItem({
           order_id: activeOrder.id,
           dish_id: dish.id,
           quantity: 1,
-          status_id: 1, // Pending
+          status_id: 1,
         });
       }
 
-      // Refresh order data
       await fetchTableData(selectedTableId);
     } catch (error) {
       console.error('Failed to add dish:', error);
@@ -166,7 +157,7 @@ export default function POSPage() {
     }
   };
 
-  // ===== PRESERVE: Update item quantity =====
+  // ===== Update item quantity =====
   const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
     if (newQuantity <= 0) {
       handleRemoveItem(itemId);
@@ -187,7 +178,7 @@ export default function POSPage() {
     }
   };
 
-  // ===== PRESERVE: Remove item (existing logic) =====
+  // ===== Remove item =====
   const handleRemoveItem = async (itemId: number) => {
     if (!confirm('Are you sure you want to remove this item?')) return;
 
@@ -205,57 +196,58 @@ export default function POSPage() {
     }
   };
 
-  // ===== NEW: KOT Print handler =====
+  // ===== KOT Print =====
   const handleKOTPrint = () => {
     console.log('KOT Print clicked');
     alert('KOT printed successfully!');
-    // Implement KOT printing logic here
   };
 
-  // ===== NEW: Draft handler =====
+  // ===== Draft handler =====
   const handleDraft = () => {
     console.log('Draft clicked');
     alert('Order saved as draft!');
-    // Implement draft saving logic here
   };
 
-  // ===== PRESERVE: Payment handler (existing logic) =====
+  // ===== Payment handler =====
   const handleBillPayment = async () => {
     if (!activeOrder || !selectedTableId) return;
 
-    const pendingItems = orderItems.filter(item => item.status_id === 1);
+    const pendingItems = orderItems.filter((item) => item.status_id === 1);
     if (pendingItems.length > 0) {
       alert('Please serve all items before completing payment');
       return;
     }
 
-    if (!confirm('Confirm payment and close table?')) return;
+    if (!confirm('Confirm payment and go to payment screen?')) return;
 
     try {
       setPaymentLoading(true);
-      await updateOrder(activeOrder.id, { status_id: 3 }); // 3 = Completed
 
-      // Clear selection and refresh
-      setSelectedTableId(null);
-      setActiveOrder(null);
-      setOrderItems([]);
+      const currentTable =
+        tables.find((t) => t.id === selectedTableId) || table;
 
-      alert('Payment completed successfully!');
+      // chỉ điều hướng, không đóng order ở đây
+      navigate(`/staff/payment/order/${activeOrder.id}`, {
+        state: {
+          tableLabel: currentTable
+            ? currentTable.number.toString()
+            : String(selectedTableId),
+        },
+      });
     } catch (error) {
-      console.error('Failed to complete payment:', error);
-      alert('Failed to complete payment. Please try again.');
+      console.error('Failed to go to payment screen:', error);
+      alert('Failed to go to payment screen. Please try again.');
     } finally {
       setPaymentLoading(false);
     }
   };
 
-  // ===== NEW: Bill & Print handler =====
   const handleBillPrint = async () => {
     await handleBillPayment();
-    console.log('Bill printed');
+    console.log('Bill printed (demo)');
   };
 
-  // ===== Filter dishes based on category and search =====
+  // ===== Filter dishes =====
   const filteredDishes = dishes.filter((dish) => {
     const matchesCategory =
       categoryFilter === 'Show All' ||
@@ -271,20 +263,19 @@ export default function POSPage() {
   // ===== RENDER =====
   return (
     <div className="flex h-screen bg-gray-50/50 overflow-hidden">
-      {/* LEFT SIDEBAR - Navigation - Fixed Width */}
+      {/* LEFT SIDEBAR */}
       <POSSidebar currentPage="pos" />
 
-      {/* CENTER - Product Grid - Flexible */}
+      {/* CENTER */}
       <main className="flex-1 overflow-y-auto h-screen">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900"> Restaurant POS</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Restaurant POS</h1>
               <p className="text-sm text-gray-500 mt-1">Dashboard • Pos</p>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-3">
               <button className="bg-[#FF6B2C] text-white px-1 py-1 rounded-lg font-medium text-sm hover:bg-[#ff5511] transition-colors flex items-center gap-2">
                 <Plus size={16} />
@@ -331,7 +322,6 @@ export default function POSPage() {
 
         {/* Content */}
         <div className="p-6 pb-12">
-          {/* Category Tabs */}
           <div className="mb-6">
             <CategoryTabs
               categories={categories}
@@ -340,7 +330,6 @@ export default function POSPage() {
             />
           </div>
 
-          {/* Dish Grid */}
           <DishGrid
             dishes={filteredDishes}
             onAddDish={handleAddDish}

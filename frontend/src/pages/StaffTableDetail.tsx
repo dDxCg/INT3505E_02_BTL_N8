@@ -14,7 +14,6 @@ import {
   getOrderItems,
   updateItemStatus,
   deleteOrderItem,
-  updateOrder,
 } from '../services/api';
 import type { TableRead, OrderRead, OrderItemRead } from '../types/schema';
 
@@ -110,17 +109,28 @@ export default function StaffTableDetail() {
   };
 
   const handlePayment = async () => {
-    if (!activeOrder) return;
+    if (!activeOrder || !table) return;
 
-    if (!confirm('Xác nhận thanh toán và đóng bàn?')) return;
+    const pendingItems = orderItems.filter((item) => item.status_id === 1);
+    if (pendingItems.length > 0) {
+      alert(`Vẫn còn ${pendingItems.length} món chưa lên, không thể thanh toán.`);
+      return;
+    }
+
+    if (!confirm('Xác nhận chuyển sang màn thanh toán cho bàn này?')) return;
 
     try {
       setPaymentLoading(true);
-      await updateOrder(activeOrder.id, { status_id: 3 }); // 3 = Completed
-      navigate('/staff'); // Go back to dashboard
+
+      navigate(`/staff/payment/order/${activeOrder.id}`, {
+        state: {
+          tableLabel: table.number.toString(),
+        },
+      });
     } catch (error) {
-      console.error('Failed to complete payment:', error);
-      alert('Không thể thanh toán. Vui lòng thử lại.');
+      console.error('Failed to go to payment screen:', error);
+      alert('Không thể chuyển sang màn thanh toán. Vui lòng thử lại.');
+    } finally {
       setPaymentLoading(false);
     }
   };
@@ -230,7 +240,7 @@ export default function StaffTableDetail() {
                             {item.dish.name}
                           </h3>
                           <div className="text-sm text-gray-600 mt-1">
-                            Số lượng:{' '}
+                            Số lượng{' '}
                             <span className="font-semibold">
                               {item.quantity}
                             </span>
@@ -363,7 +373,7 @@ export default function StaffTableDetail() {
               ) : (
                 <>
                   <DollarSign className="w-6 h-6" />
-                  Thanh toán & Đóng bàn - {formatPrice(totalAmount)}
+                  Thanh toán - {formatPrice(totalAmount)}
                 </>
               )}
             </button>
