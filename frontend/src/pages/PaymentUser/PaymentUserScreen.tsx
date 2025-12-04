@@ -131,9 +131,7 @@ function getStatusClass(status?: PaymentStatus | string, statusId?: number) {
 }
 
 // map từ tên trạng thái sang status_id cho backend
-function statusToId(
-  status: Exclude<PaymentStatus, "UNKNOWN">
-): number {
+function statusToId(status: Exclude<PaymentStatus, "UNKNOWN">): number {
   switch (status) {
     case "PENDING":
       return 1;
@@ -178,7 +176,9 @@ export default function PaymentUserScreen() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // ---- HISTORY THEO BÀN ----
-  const [tableHistory, setTableHistory] = useState<TablePaymentHistoryItem[]>([]);
+  const [tableHistory, setTableHistory] = useState<TablePaymentHistoryItem[]>(
+    []
+  );
 
   // ---- TỔNG TIỀN ----
   const totalAmount = useMemo(() => {
@@ -223,32 +223,27 @@ export default function PaymentUserScreen() {
 
   // lịch sử thanh toán của 1 bàn (qua /payments?booking_id=table_id)
   async function fetchTableHistory(tableId: number) {
-    if (!tableId) return;
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/payments?booking_id=${tableId}`
-      );
-      if (!res.ok) return;
-      const data: TablePaymentHistoryItem[] = await res.json();
-
-      // sort mới nhất lên trên
-      const sorted = [...data].sort((a, b) => {
-        const ta = a.created_at ? Date.parse(a.created_at) : 0;
-        const tb = b.created_at ? Date.parse(b.created_at) : 0;
-        return tb - ta;
-      });
-
-      setTableHistory(sorted);
-
-      // chọn payment MỚI NHẤT của bàn làm current payment
-      if (sorted.length > 0) {
-        setPayment(sorted[0]); // ← KHÔNG còn set null nên block trạng thái không biến mất nữa
-      } else {
-        setPayment(null);
-      }
-    } catch (err) {
-      console.error("[Payment] Error when fetching table history:", err);
-    }
+    // if (!tableId) return;
+    // try {
+    //   const res = await fetch(`${API_BASE_URL}/payments?booking_id=${tableId}`);
+    //   if (!res.ok) return;
+    //   const data: TablePaymentHistoryItem[] = await res.json();
+    //   // sort mới nhất lên trên
+    //   const sorted = [...data].sort((a, b) => {
+    //     const ta = a.created_at ? Date.parse(a.created_at) : 0;
+    //     const tb = b.created_at ? Date.parse(b.created_at) : 0;
+    //     return tb - ta;
+    //   });
+    //   setTableHistory(sorted);
+    //   // chọn payment MỚI NHẤT của bàn làm current payment
+    //   if (sorted.length > 0) {
+    //     setPayment(sorted[0]); // ← KHÔNG còn set null nên block trạng thái không biến mất nữa
+    //   } else {
+    //     setPayment(null);
+    //   }
+    // } catch (err) {
+    //   console.error("[Payment] Error when fetching table history:", err);
+    // }
   }
 
   async function fetchOrderAndItems(currentOrderId: number) {
@@ -266,7 +261,9 @@ export default function PaymentUserScreen() {
       ]);
 
       if (!orderRes.ok) {
-        setErrorOrder(`Không lấy được thông tin order (HTTP ${orderRes.status})`);
+        setErrorOrder(
+          `Không lấy được thông tin order (HTTP ${orderRes.status})`
+        );
       } else {
         const orderData: Order = await orderRes.json();
         setOrder(orderData);
@@ -321,7 +318,7 @@ export default function PaymentUserScreen() {
       setErrorPayment(null);
 
       const body = {
-        booking_id: order.table_id, // ❗ booking_id = table_id
+        booking_id: order.id, // ❗ booking_id != table_id
         amount: totalAmount,
         currency: "VND",
         method_id: 1,
@@ -340,6 +337,7 @@ export default function PaymentUserScreen() {
       }
 
       const data: Payment = await res.json();
+      // console.log(data);
       setPayment(data);
 
       if (order.table_id) {
@@ -452,8 +450,8 @@ export default function PaymentUserScreen() {
     locationState.tableLabel ??
     (tableInfo?.number
       ? tableInfo.number.toString()
-      : order?.table_id
-      ? order.table_id.toString()
+      : order?.id
+      ? order.id.toString()
       : "—");
 
   const guestCount =
@@ -465,12 +463,13 @@ export default function PaymentUserScreen() {
       <div className="payment-card">
         <header className="payment-header">
           <div>
-            <p className="payment-subtitle">Demo thanh toán qua Payment Service</p>
+            <p className="payment-subtitle">
+              Demo thanh toán qua Payment Service
+            </p>
             <h1 className="payment-title">Thanh toán bàn {tableLabel}</h1>
             <p className="payment-meta">
               Số khách: <strong>{guestCount}</strong> · Mở lúc{" "}
-              <strong>{openedAt}</strong> · Mã order{" "}
-              <strong>{ORDER_ID}</strong>
+              <strong>{openedAt}</strong> · Mã order <strong>{ORDER_ID}</strong>
             </p>
             {errorOrder && (
               <p className="error-text" style={{ marginTop: 4 }}>
