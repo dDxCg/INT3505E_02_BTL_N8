@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Loader2 } from 'lucide-react';
+import { RefreshCw, Loader2, Bell, User, Search, Grid3x3, List, LayoutGrid } from 'lucide-react';
 import { getTables, getOrders, getOrderItems } from '../services/api';
 import type { TableRead, OrderRead } from '../types/schema';
 
@@ -22,6 +22,9 @@ export default function StaffDashboard() {
   const [tables, setTables] = useState<TableWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeStatusTab, setActiveStatusTab] = useState<'dine-in' | 'takeaway' | 'reservations'>('dine-in');
+  const [activeViewTab, setActiveViewTab] = useState<'table' | 'board' | 'list'>('table');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // ============================================
   // FETCH DATA
@@ -141,130 +144,226 @@ export default function StaffDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
       </div>
     );
   }
 
+  // Filter tables based on search
+  const filteredTables = tables.filter((table) =>
+    searchQuery === '' ||
+    table.number.toString().includes(searchQuery) ||
+    table.seats.toString().includes(searchQuery)
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Staff Dashboard</h1>
-              <p className="text-sm text-blue-100">Quản lý nhà hàng</p>
-            </div>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="p-3 bg-blue-700 hover:bg-blue-800 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`w-6 h-6 ${refreshing ? 'animate-spin' : ''}`}
-              />
-            </button>
-          </div>
+    <div className="min-h-screen bg-gray-100">
+      {/* Piznek-Style Top Bar */}
+      <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between">
+        {/* Left: Refresh Button */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh"
+          >
+            <RefreshCw size={20} className={`text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        {/* Center: Status Pills */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveStatusTab('dine-in')}
+            className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${
+              activeStatusTab === 'dine-in'
+                ? 'bg-red-600 text-white shadow-md'
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            Dine In ({occupiedCount})
+          </button>
+          <button
+            onClick={() => setActiveStatusTab('takeaway')}
+            className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${
+              activeStatusTab === 'takeaway'
+                ? 'bg-red-600 text-white shadow-md'
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            Takeaway
+          </button>
+          <button
+            onClick={() => setActiveStatusTab('reservations')}
+            className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${
+              activeStatusTab === 'reservations'
+                ? 'bg-red-600 text-white shadow-md'
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            Reservations
+          </button>
+        </div>
+
+        {/* Right: User Profile & Notification */}
+        <div className="flex items-center gap-3">
+          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
+            <Bell size={20} className="text-gray-600" />
+            {totalPendingItems > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            )}
+          </button>
+          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <User size={20} className="text-gray-600" />
+          </button>
         </div>
       </header>
 
-      {/* Stats Bar */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">
-                {tables.length}
-              </div>
-              <div className="text-sm text-gray-600">Tổng bàn</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-red-600">
-                {occupiedCount}
-              </div>
-              <div className="text-sm text-gray-600">Đang phục vụ</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">
-                {availableCount}
-              </div>
-              <div className="text-sm text-gray-600">Bàn trống</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">
-                {totalPendingItems}
-              </div>
-              <div className="text-sm text-gray-600">Món đang chờ</div>
-            </div>
+      {/* Sub-Header: Filters & Tabs */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Left: View Tabs */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveViewTab('table')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                activeViewTab === 'table'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Grid3x3 size={16} />
+              Table
+            </button>
+            <button
+              onClick={() => setActiveViewTab('board')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                activeViewTab === 'board'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <LayoutGrid size={16} />
+              Board
+            </button>
+            <button
+              onClick={() => setActiveViewTab('list')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                activeViewTab === 'list'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <List size={16} />
+              List
+            </button>
+          </div>
+
+          {/* Right: Search Input */}
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm bàn..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm w-64"
+            />
           </div>
         </div>
       </div>
 
-      {/* Tables Grid */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {tables.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {tables.map((table) => (
-              <button
-                key={table.id}
-                onClick={() => handleTableClick(table.id)}
-                className={`
-                  p-6 rounded-lg shadow-md transition-all hover:shadow-lg hover:scale-105
-                  ${
-                    table.status === 'occupied'
-                      ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white'
-                      : 'bg-gradient-to-br from-green-400 to-green-500 text-white'
-                  }
-                `}
-              >
-                {/* Table Number */}
-                <div className="text-center mb-3">
-                  <div className="text-4xl font-bold">#{table.number}</div>
-                  <div className="text-sm opacity-90">{table.seats} chỗ</div>
-                </div>
+      {/* Stats Summary Bar */}
+      <div className="bg-white border-b border-gray-200 px-6 py-3">
+        <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <span className="text-gray-600">Đang phục vụ: <span className="font-semibold text-gray-900">{occupiedCount}</span></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="text-gray-600">Trống: <span className="font-semibold text-gray-900">{availableCount}</span></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+            <span className="text-gray-600">Món chờ: <span className="font-semibold text-gray-900">{totalPendingItems}</span></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+            <span className="text-gray-600">Tổng: <span className="font-semibold text-gray-900">{tables.length}</span></span>
+          </div>
+        </div>
+      </div>
 
-                {/* Status Badge */}
-                <div
+      {/* Tables Grid - Piznek Pill Badge Style */}
+      <main className="p-6">
+        {filteredTables.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {filteredTables.map((table) => {
+              // Calculate time elapsed if occupied (mock for now - you can add real timestamps)
+              const getTimeElapsed = () => {
+                // This would come from order.created_at in real implementation
+                return '45 min';
+              };
+
+              return (
+                <button
+                  key={table.id}
+                  onClick={() => handleTableClick(table.id)}
                   className={`
-                  text-xs font-semibold px-3 py-1 rounded-full mb-2
-                  ${
-                    table.status === 'occupied'
-                      ? 'bg-white bg-opacity-30'
-                      : 'bg-white bg-opacity-30'
-                  }
-                `}
+                    bg-white rounded-3xl h-32 flex flex-col items-center justify-center relative
+                    shadow-sm border-[3px] transition-all cursor-pointer hover:shadow-lg
+                    ${table.status === 'occupied' ? 'border-white' : 'border-gray-100'}
+                  `}
                 >
-                  {table.status === 'occupied' ? 'Đang phục vụ' : 'Trống'}
-                </div>
-
-                {/* Order Info (if occupied) */}
-                {table.status === 'occupied' && (
-                  <div className="mt-3 pt-3 border-t border-white border-opacity-30">
-                    {table.pendingItemsCount !== undefined &&
-                      table.pendingItemsCount > 0 && (
-                        <div className="text-sm mb-1">
-                          <span className="font-bold">
-                            {table.pendingItemsCount}
-                          </span>{' '}
-                          món chờ lên
-                        </div>
-                      )}
-                    {table.totalAmount !== undefined && (
-                      <div className="text-sm font-bold">
-                        {formatPrice(table.totalAmount)}
+                  {/* Empty Table */}
+                  {table.status === 'available' && (
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-gray-400 mb-1">
+                        T-{table.number}
                       </div>
-                    )}
-                  </div>
-                )}
-              </button>
-            ))}
+                      <div className="text-xs text-gray-400">{table.seats} chỗ</div>
+                    </div>
+                  )}
+
+                  {/* Occupied Table */}
+                  {table.status === 'occupied' && (
+                    <>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-gray-900 mb-1">
+                          Bàn {table.number}
+                        </div>
+                        <div className="text-sm text-gray-500">{getTimeElapsed()}</div>
+                        {table.totalAmount !== undefined && (
+                          <div className="text-xs font-semibold text-gray-700 mt-1">
+                            {formatPrice(table.totalAmount)}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Red Pill Badge at Bottom */}
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+                        <div className="bg-red-600 text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 whitespace-nowrap">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                          {table.pendingItemsCount !== undefined && table.pendingItemsCount > 0 ? (
+                            <span>{table.pendingItemsCount} món chờ</span>
+                          ) : (
+                            <span>Đang dùng</span>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </button>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">
-              Chưa có bàn nào trong hệ thống
+            <p className="text-gray-500 text-lg">
+              {searchQuery ? 'Không tìm thấy bàn nào' : 'Chưa có bàn nào trong hệ thống'}
             </p>
           </div>
         )}
