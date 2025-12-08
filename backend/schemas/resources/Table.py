@@ -1,7 +1,25 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+#---Table Status---
+class TableStatusRead(BaseModel):
+    id: int
+    status: str
 
+    model_config = {
+        "from_attributes": True
+    }
+
+class TableStatusCreate(BaseModel):
+    status: str
+
+class TableStatusUpdate(BaseModel):
+    status: Optional[str]
+
+class TableStatusFilter(TableStatusUpdate):
+    pass
+
+#---Table---
 class TableCreate(BaseModel):
     """Create a table"""
     number: int = Field(..., gt=0)
@@ -12,20 +30,25 @@ class TableUpdate(BaseModel):
     """Update table info"""
     number: Optional[int] = Field(None, gt=0)
     seats: Optional[int] = Field(None, ge=1)
+    status_id: Optional[int] = None
 
 
-class TableFilter(BaseModel):
+class TableFilter(TableUpdate):
     """Filter tables"""
-    number: Optional[int] = None
-    seats: Optional[int] = None
+    pass
 
 
-class TableRead(BaseModel):
+class TableReadBase(BaseModel):
     """Read table"""
     id: int
     number: int
     seats: int
+    status_id: int
 
     model_config = {
         "from_attributes": True
     }
+
+class TableReadExtended(TableReadBase):
+    status: TableStatusRead
+

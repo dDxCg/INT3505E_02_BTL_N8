@@ -27,7 +27,7 @@ class OrderItemRepository:
                 selectinload(OrderItem.dish),
                 selectinload(OrderItem.status)
             )
-            .filter(OrderItem.id == order_item_id)  
+            .where(OrderItem.id == order_item_id)  
         )
         order_item = result.scalar_one_or_none()
 

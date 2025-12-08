@@ -6,14 +6,15 @@ from repository.resources import TableRepository
 from schemas.resources import (
     TableCreate,
     TableUpdate,
-    TableRead,
+    TableReadBase,
+    TableReadExtended,
     TableFilter,
 )
 
 router = APIRouter(prefix="/tables", tags=["Tables"])
 
 
-@router.post("", response_model=TableRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TableReadBase, status_code=status.HTTP_201_CREATED)
 async def create_table(
     payload: TableCreate,
     db: AsyncSession = Depends(get_db),
@@ -29,7 +30,7 @@ async def create_table(
         )
 
 
-@router.get("", response_model=list[TableRead])
+@router.get("", response_model=list[TableReadExtended])
 async def get_tables(
     filters: TableFilter = Depends(),
     db: AsyncSession = Depends(get_db),
@@ -39,7 +40,7 @@ async def get_tables(
     return await table_repo.get_all_tables(filters)
 
 
-@router.get("/{table_id}", response_model=TableRead)
+@router.get("/{table_id}", response_model=TableReadExtended)
 async def get_table(
     table_id: int,
     db: AsyncSession = Depends(get_db),
@@ -56,7 +57,7 @@ async def get_table(
     return table
 
 
-@router.put("/{table_id}", response_model=TableRead)
+@router.put("/{table_id}", response_model=TableReadBase)
 async def update_table(
     table_id: int,
     payload: TableUpdate,
@@ -80,7 +81,7 @@ async def update_table(
         )
 
 
-@router.delete("/{table_id}", response_model=TableRead)
+@router.delete("/{table_id}", response_model=TableReadBase)
 async def delete_table(
     table_id: int,
     db: AsyncSession = Depends(get_db),
