@@ -17,14 +17,16 @@ class TrackingService:
     def __init__(self, db: AsyncSession):
         pass
 
-    async def log_change(self, ingredient_id: int, change: float, reason: str):
+    async def get_history_by_period(self, ingredient_id: int, start: str, end: str):
         pass
 
-    async def get_history(self, ingredient_id: int):
+    async def compare_2_periods(self, ingredient_id: int, start_1: str, end_1: str, start_2: str, end_2: str):
         pass
 
-    async def compare_periods(self, ingredient_id: int, start_date_1: str, end_date_1: str, start_date_2: str, end_date_2: str):
+    
+    #scheduler (table for custom schedule config) - msq queue - consumer -> (noti mail, noti real time - ws, log)
+    async def alert_usage(self):
         pass
 
-    async def alert_usage_increasing(self):
+    async def alert_threshold(self):
         pass

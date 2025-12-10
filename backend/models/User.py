@@ -15,8 +15,11 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     contact_info = Column(String(255), unique=True, nullable=False)
+    email = Column(String(255))
     password = Column(String(255), nullable=False)
     name = Column(String(255), nullable=False)
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
 
     role = relationship("Role", back_populates="users")
+
+#idea note: schedule profile table: custom schedule alert for each admin
