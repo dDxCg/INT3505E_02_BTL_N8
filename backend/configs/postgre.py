@@ -1,40 +1,53 @@
-# configs/postgre.py
+# backend/configs/postgre.py
 
 import os
 import ssl
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# 1) Load .env ở project root
-ENV = os.getenv('ENV', 'local')
-dotenv_path = f".env.{ENV}"
-load_dotenv(dotenv_path)
+# 1) Xác định thư mục backend và load .env ở đó
+BASE_DIR = Path(__file__).resolve().parent.parent  # .../backend
+ENV = os.getenv("ENV", "local")
+
+env_candidates = [
+    BASE_DIR / ".env",          
+    BASE_DIR / f".env.{ENV}",   
+]
+
+for env_path in env_candidates:
+    if env_path.exists():
+        print(f"[configs/postgre] Loading env file: {env_path}")
+        load_dotenv(env_path, override=False)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
+    checked = ", ".join(str(p) for p in env_candidates)
     raise RuntimeError(
-        "DATABASE_URL is not set. Kiểm tra lại file .env hoặc biến môi trường nhé."
+        f"DATABASE_URL is not set. Kiểm tra lại file .env (đã thử: {checked}) "
+        "hoặc biến môi trường nhé."
     )
 
-# 2) Chuyển URL sync -> async (asyncpg)
-if DATABASE_URL.startswith("postgresql://"):
-    ASYNC_DATABASE_URL = DATABASE_URL.replace(
+# 2) Đảm bảo dùng asyncpg cho SQLAlchemy async
+if DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace(
         "postgresql://", "postgresql+asyncpg://", 1
     )
-else:
-    ASYNC_DATABASE_URL = DATABASE_URL
 
-# 3) SSL cho Neon (tạm thời relax cho local)
-ssl_context = ssl.create_default_context()
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
+# 3) SSL cho Neon (nếu dùng asyncpg)
+connect_args: dict = {}
+if DATABASE_URL.startswith("postgresql+asyncpg://"):
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    connect_args = {"ssl": ssl_context}
 
 engine = create_async_engine(
-    ASYNC_DATABASE_URL,
+    DATABASE_URL,
     echo=True,
-    connect_args={"ssl": ssl_context},
+    connect_args=connect_args,
 )
 
 SessionFactory = sessionmaker(

@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import PaymentUserScreen from './pages/PaymentUser/PaymentUserScreen';
+import PaymentVNPayScreen from './pages/PaymentUser/PaymentVNPayScreen';
+
 
 // Guest Pages
 import GuestOrderPage from './pages/guest';
@@ -45,6 +47,8 @@ function App() {
             path="/staff/payment/order/:orderId"
             element={<PaymentUserScreen />}
           />
+          {/*Thanh toán QR*/}
+          <Route path="/payment/vnpay-demo" element={<PaymentVNPayScreen />} />
 
           {/* Giữ lại demo cũ nếu muốn */}
           <Route path="/payment-demo" element={<PaymentUserScreen />} />
