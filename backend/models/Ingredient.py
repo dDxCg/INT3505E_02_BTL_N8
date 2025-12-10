@@ -21,6 +21,11 @@ class Ingredient(Base):
     threshold = Column(Float, default=0)       # minimum before restocking
 
     unit = relationship("IngredientUnit", back_populates="ingredients")
+    histories = relationship(
+        "IngredientHistory",
+        back_populates="ingredient",
+        cascade="all, delete-orphan"
+    )
 
 
 class IngredientHistory(Base):
@@ -28,8 +33,10 @@ class IngredientHistory(Base):
 
     id = Column(Integer, primary_key=True)
     ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
-    change = Column(Float, nullable=False)  
+    old_quantity = Column(Float, nullable=False)
+    new_quantity = Column(Float, nullable=False)
+    quantity_change = Column(Float, nullable=False)  
     reason = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)    
 
-    ingredient = relationship("Ingredient")
+    ingredient = relationship("Ingredient", back_populates="histories")

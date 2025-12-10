@@ -7,6 +7,7 @@ from .resources.IngredientUnit import router as ingredient_unit_router
 from .resources.IngredientHistory import router as ingredient_history_router
 from .resources.Dish import router as dish_router
 from .resources.Table import router as tables_router
+from .resources.TableStatus import router as table_status_router
 
 from .booking.Order import router as orders_router
 from .booking.OrderItem import router as order_items_router
@@ -15,9 +16,11 @@ from .booking.OrderItemStatus import router as order_items_statuses_router
 
 from .feedback.Feedback import router as feedback_router
 
+
 all_v1_routers = [
     dish_router,
     tables_router,
+    table_status_router,
     equipment_router,
     equipment_type_router,
     equipment_status_router,

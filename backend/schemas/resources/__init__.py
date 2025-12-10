@@ -7,4 +7,5 @@ from .Ingredient import (IngredientCreate, IngredientUpdate, IngredientFilter, I
     IngredientHistoryCreate, IngredientHistoryRead, IngredientHistoryUpdate, IngredientHistoryFilter)
 
 from .Dish import (DishCreate, DishRead, DishUpdate, DishFilter)
-from .Table import (TableCreate, TableRead, TableUpdate, TableFilter)
+from .Table import (TableCreate, TableReadBase, TableUpdate, TableFilter, TableReadExtended)
+from .Table import (TableStatusCreate, TableStatusFilter, TableStatusUpdate, TableStatusRead)
