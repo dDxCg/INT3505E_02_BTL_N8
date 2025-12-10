@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, delete, select, update
-from models import Order, Table, Guest
+from models import Order, Table, Guest, TableStatus
 
 from schemas.booking import (
     OrderCreate,
@@ -9,6 +9,10 @@ from schemas.booking import (
     OrderFilter,
 )
 
+TABLE_STATUS_AVAILABLE = 1
+TABLE_STATUS_SERVING = 2
+
+ORDER_STATUS_COMPLETED = 5
 
 class OrderRepository:
     def __init__(self, db: AsyncSession):
@@ -18,13 +22,17 @@ class OrderRepository:
         """
         Create a new order at a table.
         Validates table and guest exist (if provided).
+        Updates table status to SERVING when order is created.
         """
         # Validate table exists
         table = await self.db.execute(
             select(Table).where(Table.id == data.table_id)
         )
-        if table.scalar_one_or_none() is None:
+        table_obj = table.scalar_one_or_none()
+        if table_obj is None:
             raise ValueError(f"Table with id {data.table_id} does not exist.")
+        if table_obj.status_id != TABLE_STATUS_AVAILABLE:
+            raise ValueError(f"Table with id {data.table_id} is not available.")
 
         # Validate guest if provided
         if data.guest_id is not None:
@@ -43,6 +51,12 @@ class OrderRepository:
             guest_id=data.guest_id,
         )
         self.db.add(order)
+        
+        # Update table status to SERVING
+        await self.db.execute(
+            update(Table).where(Table.id == data.table_id).values(status_id=TABLE_STATUS_SERVING)
+        )
+
         await self.db.commit()
         await self.db.refresh(order)
 
@@ -132,3 +146,31 @@ class OrderRepository:
         await self.db.commit()
 
         return result
+
+    async def complete_order(self, order_id: int) -> OrderRead:
+        """
+        Complete an order: sets order status to COMPLETED (5) 
+        and table status back to AVAILABLE (1)
+        """
+        order = await self.db.execute(
+            select(Order).where(Order.id == order_id)
+        )
+        order = order.scalar_one_or_none()
+        
+        if order is None:
+            raise ValueError(f"Order with id {order_id} does not exist.")
+        
+        # Update order status to COMPLETED
+        await self.db.execute(
+            update(Order).where(Order.id == order_id).values(status_id=ORDER_STATUS_COMPLETED)
+        )
+        
+        # Update table status to AVAILABLE
+        await self.db.execute(
+            update(Table).where(Table.id == order.table_id).values(status_id=TABLE_STATUS_AVAILABLE)
+        )
+        
+        await self.db.commit()
+        await self.db.refresh(order)
+        
+        return OrderRead.model_validate(order)

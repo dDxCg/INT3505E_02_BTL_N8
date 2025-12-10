@@ -7,18 +7,19 @@ from schemas.booking import (
     OrderItemRead,
     OrderItemUpdate,
     OrderItemFilter,
+    OrderItemBase
 )
 
 class OrderItemRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_order_item(self, data: OrderItemCreate) -> OrderItem:
+    async def create_order_item(self, data: OrderItemCreate) -> OrderItemBase:
         order_item = OrderItem(**data.model_dump())
         self.db.add(order_item)
         await self.db.commit()
         await self.db.refresh(order_item)
-        return order_item
+        return OrderItemBase.model_validate(order_item)
 
     async def get_order_item_by_id(self, order_item_id: int) -> OrderItemRead | None:
         result = await self.db.execute(
@@ -59,7 +60,7 @@ class OrderItemRepository:
         order_items = result.scalars().all()
         return [OrderItemRead.model_validate(item) for item in order_items]
     
-    async def update_order_item(self, order_item_id: int, data: OrderItemUpdate) -> OrderItem | None:
+    async def update_order_item(self, order_item_id: int, data: OrderItemUpdate) -> OrderItemBase | None:
         result = await self.db.execute(
             select(OrderItem).where(OrderItem.id == order_item_id)
         )
@@ -80,9 +81,9 @@ class OrderItemRepository:
         await self.db.commit()
 
         await self.db.refresh(order_item)
-        return order_item
+        return OrderItemBase.model_validate(order_item)
     
-    async def delete_order_item(self, order_item_id: int) -> OrderItem | None:
+    async def delete_order_item(self, order_item_id: int) -> OrderItemBase | None:
         result = await self.db.execute(
             select(OrderItem).where(OrderItem.id == order_item_id)
         )
@@ -95,7 +96,7 @@ class OrderItemRepository:
             delete(OrderItem).where(OrderItem.id == order_item_id)
         )
         await self.db.commit()
-        return order_item
+        return OrderItemBase.model_validate(order_item)
     
     async def get_order_items_by_order_id(self, order_id: int) -> list[OrderItemRead]:
         result = await self.db.execute(

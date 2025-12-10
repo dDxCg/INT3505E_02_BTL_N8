@@ -11,6 +11,8 @@ from schemas.booking import (
 )
 from services.booking import OrderService
 
+from ws import EventBus
+
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
@@ -22,7 +24,11 @@ async def create_order(
     """Create a new order at a table."""
     try:
         order_repo = OrderRepository(db)
-        return await order_repo.create_order(payload)
+        data = await order_repo.create_order(payload)
+        
+        await EventBus.publish_order_created(data)
+
+        return data
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -73,6 +79,9 @@ async def update_order(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Order {order_id} not found"
             )
+        
+        await EventBus.publish_order_updated(order)
+
         return order
     except ValueError as e:
         raise HTTPException(
@@ -95,7 +104,29 @@ async def delete_order(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Order {order_id} not found"
         )
+
     return order
+
+
+@router.post("/{order_id}/complete", response_model=OrderRead)
+async def complete_order(
+    order_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Complete an order (set status to COMPLETED and free table)."""
+    try:
+        order_repo = OrderRepository(db)
+        order = await order_repo.complete_order(order_id)
+        
+        await EventBus.publish_order_completed(order)
+        
+        return order
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
 
 @router.get("/{order_id}/total")
 async def get_total(

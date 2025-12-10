@@ -8,7 +8,7 @@ class TableStatus(Base):
     id = Column(Integer, primary_key=True)
     status = Column(String(255), nullable=False, unique=True)
 
-    table = relationship("Table", back_populates="tables")
+    tables = relationship("Table", back_populates="status")
 
 class Table(Base):
     __tablename__ = "tables"
@@ -19,4 +19,4 @@ class Table(Base):
     status_id = Column(Integer, ForeignKey("table_statuses.id"))
 
     orders = relationship("Order", back_populates="table", cascade="all, delete-orphan")
-    status = relationship("TableStatus", back_populates="table_status")
+    status = relationship("TableStatus", back_populates="tables")
