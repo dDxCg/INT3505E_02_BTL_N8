@@ -1,6 +1,7 @@
 # routes/v1/payments/Payment.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.vnpay import build_vnpay_payment_url
 
 from configs.postgre import get_db
 from schemas.payments import (
@@ -47,9 +48,22 @@ async def get_payment(
 @router.post("", response_model=Payment, status_code=status.HTTP_201_CREATED)
 async def create_payment(
     payload: PaymentCreate,
+    request: Request, 
     db: AsyncSession = Depends(get_db),
 ):
-    return await create_payment_repo(db, payload)
+    payment = await create_payment_repo(db, payload)
+
+    # Lấy IP client (fallback 127.0.0.1 nếu None)
+    client_ip = request.client.host if request.client else "127.0.0.1"
+
+    # Build URL VNPay và gắn vào qr_url (FE sẽ render QR từ URL này)
+    payment.qr_url = build_vnpay_payment_url(
+        payment_id=payment.id,
+        amount=payment.amount,
+        client_ip=client_ip,
+    )
+
+    return payment
 
 
 @router.put("/{payment_id}", response_model=Payment)

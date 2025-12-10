@@ -33,6 +33,8 @@ class Payment(BaseModel):
     provider_id: int 
     status_id: int 
     paid_at: datetime | None = None
+    expired_at: datetime | None = None       
+    gateway_txn_ref: str | None = None 
     qr_url: str | None = None 
     provider_transaction_id: str | None = None
 

@@ -44,6 +44,8 @@ class Payment(Base):
     method_id = Column(Integer, ForeignKey("payment_methods.id"), nullable=False)
     provider_id = Column(Integer, ForeignKey("payment_providers.id"), nullable=False)
     provider_transaction_id = Column(String(255), unique=True, nullable=False)
+    gateway_txn_ref = Column(String(255), nullable=True)
+    expired_at = Column(DateTime(timezone=True), nullable=True)
     paid_at = Column(DateTime, default=datetime.utcnow)
     status_id = Column(Integer, ForeignKey("payment_statuses.id"), nullable=False)
     method = relationship("PaymentMethod", back_populates="payments")

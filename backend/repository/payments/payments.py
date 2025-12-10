@@ -42,6 +42,8 @@ def map_db_to_schema(db_payment: PaymentModel) -> Payment:
         provider_id=db_payment.provider_id,
         status_id=db_payment.status_id,
         paid_at=db_payment.paid_at,
+        expired_at=db_payment.expired_at,              
+        gateway_txn_ref=db_payment.gateway_txn_ref,
         qr_url=build_qr_url(db_payment.id),
         provider_transaction_id=db_payment.provider_transaction_id,
     )
