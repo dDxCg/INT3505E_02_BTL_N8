@@ -3,12 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from configs.postgre import get_db
 
 from repository.resources import IngredientRepository
-from schemas.resources import IngredientCreate, IngredientUpdate, IngredientRead, IngredientFilter
+from schemas.resources import IngredientCreate, IngredientUpdate, IngredientReadBase, IngredientReadExtended, IngredientFilter
 
 router = APIRouter(prefix="/resources/ingredients", tags=["Ingredients"])
 
 
-@router.post("/", response_model=IngredientRead)
+@router.post("/", response_model=IngredientReadBase)
 async def create_ingredient(
     ingredient: IngredientCreate,
     db: AsyncSession = Depends(get_db),
@@ -17,7 +17,7 @@ async def create_ingredient(
     return await ingredient_repository.create_ingredient(ingredient)
 
 
-@router.get("/", response_model=list[IngredientRead])
+@router.get("/", response_model=list[IngredientReadExtended])
 async def get_ingredients(
     filter: IngredientFilter = Depends(),
     db: AsyncSession = Depends(get_db),
@@ -26,7 +26,7 @@ async def get_ingredients(
     return await ingredient_repository.get_all_ingredients(filter)
 
 
-@router.get("/{ingredient_id}", response_model=IngredientRead)
+@router.get("/{ingredient_id}", response_model=IngredientReadExtended)
 async def get_ingredient_by_id(
     ingredient_id: int,
     db: AsyncSession = Depends(get_db),
@@ -35,7 +35,7 @@ async def get_ingredient_by_id(
     return await ingredient_repository.get_ingredient_by_id(ingredient_id)
 
 
-@router.put("/{ingredient_id}", response_model=IngredientRead)
+@router.put("/{ingredient_id}", response_model=IngredientReadBase)
 async def update_ingredient(
     ingredient_id: int,
     ingredient: IngredientUpdate,
@@ -45,7 +45,7 @@ async def update_ingredient(
     return await ingredient_repository.update_ingredient(ingredient_id, ingredient)
 
 
-@router.delete("/{ingredient_id}", response_model=IngredientRead)
+@router.delete("/{ingredient_id}", response_model=IngredientReadBase)
 async def delete_ingredient(
     ingredient_id: int,
     db: AsyncSession = Depends(get_db),

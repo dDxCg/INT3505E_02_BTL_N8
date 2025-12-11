@@ -1,10 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, select, update
+from sqlalchemy.orm import selectinload
 from models import Ingredient, IngredientUnit, IngredientHistory
 from schemas.resources import (
     IngredientCreate,
     IngredientUpdate, 
     IngredientFilter,
+    IngredientReadBase,
+    IngredientReadExtended,
     IngredientUnitCreate,
     IngredientUnitUpdate,
     IngredientUnitFilter,
@@ -16,7 +19,7 @@ class IngredientRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_ingredient(self, data: IngredientCreate) -> Ingredient:
+    async def create_ingredient(self, data: IngredientCreate) -> IngredientReadBase:
         unit = await self.db.execute(select(IngredientUnit).where(IngredientUnit.id == data.unit_id))
         if (unit.scalar_one_or_none() is None):
             raise ValueError(f"IngredientUnit with id {data.unit_id} does not exist.")
@@ -26,8 +29,8 @@ class IngredientRepository:
         await self.db.refresh(ingredient)
         return ingredient
     
-    async def get_all_ingredients(self, filters: IngredientFilter) -> list[Ingredient]:
-        query = select(Ingredient)
+    async def get_all_ingredients(self, filters: IngredientFilter) -> list[IngredientReadExtended]:
+        query = select(Ingredient).options(selectinload(Ingredient.unit))
         conditions = []
 
         if filters.name is not None:
@@ -39,14 +42,19 @@ class IngredientRepository:
             query = query.where(*conditions)
 
         result = await self.db.execute(query)
-        return result.scalars().all()
+        ingre_list = result.scalars().all()
+        return [ingre for ingre in ingre_list]
     
-    async def get_ingredient_by_id(self, ingredient_id: int) -> Ingredient | None:
-        result = await self.db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
-        return result.scalar_one_or_none()
+    async def get_ingredient_by_id(self, ingredient_id: int) -> IngredientReadExtended | None:
+        result = await self.db.execute(select(Ingredient).options(
+            selectinload(Ingredient.unit)
+        ).where(Ingredient.id == ingredient_id))
+        ingre = result.scalar_one_or_none()
+        return ingre
     
-    async def update_ingredient(self, ingredient_id: int, data: IngredientUpdate) -> Ingredient | None:
-        ingredient = await self.get_ingredient_by_id(ingredient_id)
+    async def update_ingredient(self, ingredient_id: int, data: IngredientUpdate) -> IngredientReadBase | None:
+        get_ingredient = await self.db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
+        ingredient = get_ingredient.scalar_one_or_none()
         if not ingredient:
             return None
 
@@ -70,11 +78,14 @@ class IngredientRepository:
         await self.db.refresh(ingredient)
         return ingredient
     
-    async def delete_ingredient(self, ingredient_id: int) -> Ingredient | None:
-        ingredient = await self.get_ingredient_by_id(ingredient_id)
+    async def delete_ingredient(self, ingredient_id: int) -> IngredientReadBase | None:
+        get_ingredient = await self.db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
+        ingredient = get_ingredient.scalar_one_or_none()
         if ingredient:
             await self.db.execute(delete(Ingredient).where(Ingredient.id == ingredient_id))
             await self.db.commit()
+        else:
+            return None
         return ingredient
     
 

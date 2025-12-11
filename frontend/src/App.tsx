@@ -1,17 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import PaymentUserScreen from './pages/PaymentUser/PaymentUserScreen';
-import PaymentVNPayScreen from './pages/PaymentUser/PaymentVNPayScreen';
-
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import PaymentUserScreen from "./pages/PaymentUser/PaymentUserScreen";
+import PaymentVNPayScreen from "./pages/PaymentUser/PaymentVNPayScreen";
 
 // Guest Pages
-import GuestOrderPage from './pages/guest';
-import MyOrderPage from './pages/guest/my-order';
+import GuestOrderPage from "./pages/guest";
+import MyOrderPage from "./pages/guest/my-order";
 
 // Staff Pages
-import StaffDashboard from './pages/StaffDashboard';
-import StaffTableDetail from './pages/StaffTableDetail';
-import POSPage from './pages/pos';
+import StaffDashboard from "./pages/StaffDashboard";
+import StaffTableDetail from "./pages/StaffTableDetail";
+import POSPage from "./pages/pos";
+
+import AdminPage from "@/pages/Admin/Admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +54,7 @@ function App() {
           {/* Giữ lại demo cũ nếu muốn */}
           <Route path="/payment-demo" element={<PaymentUserScreen />} />
 
+          <Route path="/admin" element={<AdminPage />} />
           {/* 404 */}
           <Route path="*" element={<Navigate to="/staff" replace />} />
         </Routes>

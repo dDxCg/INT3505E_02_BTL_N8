@@ -1,32 +1,5 @@
 from pydantic import BaseModel
-
-# --- Ingredient Schemas ---
-class IngredientCreate(BaseModel):
-    name: str
-    unit_id: int
-    quantity: float
-    threshold: float
-
-class IngredientUpdate(BaseModel):
-    name: str | None = None
-    unit_id: int | None = None
-    quantity: float | None = None
-    threshold: float | None = None
-
-class IngredientFilter(IngredientUpdate):
-    pass
-
-class IngredientRead(BaseModel):
-    id: int
-    name: str
-    unit_id: int
-    quantity: float
-    threshold: float
-
-    model_config = {
-        "from_attributes": True
-    }
-
+from models import IngredientUnit
 
 # --- Ingredient Unit Schemas ---
 class IngredientUnitCreate(BaseModel):
@@ -45,6 +18,39 @@ class IngredientUnitRead(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+# --- Ingredient Schemas ---
+class IngredientCreate(BaseModel):
+    name: str
+    unit_id: int
+    quantity: float
+    threshold: float
+
+class IngredientUpdate(BaseModel):
+    name: str | None = None
+    unit_id: int | None = None
+    quantity: float | None = None
+    threshold: float | None = None
+
+class IngredientFilter(IngredientUpdate):
+    pass
+
+class IngredientReadBase(BaseModel):
+    id: int
+    name: str
+    unit_id: int
+    quantity: float
+    threshold: float
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class IngredientReadExtended(IngredientReadBase):
+    unit: IngredientUnitRead
+
+
 
 
 # --- Ingredient History Schemas ---
