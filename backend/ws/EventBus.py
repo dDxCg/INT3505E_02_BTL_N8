@@ -4,7 +4,7 @@ import sys
 class EventBus:
     @staticmethod
     async def publish_order_created(order):
-        print(f"Publishing order_created event for order: {order}", file=sys.stdout, flush=True)
+        print(f"[EVENT] Publishing order_created event for order: {order}", file=sys.stdout, flush=True)
         await ws_manager.broadcast({
             "event": "order_created",
             "data": order
@@ -12,7 +12,7 @@ class EventBus:
 
     @staticmethod
     async def publish_order_updated(order):
-        print(f"Publishing order_updated event for order: {order}", file=sys.stdout, flush=True)
+        print(f"[EVENT] Publishing order_updated event for order: {order}", file=sys.stdout, flush=True)
         await ws_manager.broadcast({
             "event": "order_updated",
             "data": order
@@ -20,7 +20,7 @@ class EventBus:
 
     @staticmethod
     async def publish_order_completed(order):
-        print(f"Publishing order_completed event for order: {order}", file=sys.stdout, flush=True)
+        print(f"[EVENT] Publishing order_completed event for order: {order}", file=sys.stdout, flush=True)
         await ws_manager.broadcast({
             "event": "order_completed",
             "data": order
@@ -28,7 +28,7 @@ class EventBus:
     
     @staticmethod
     async def publish_order_item_created(order_item):
-        print(f"Publishing order_item_created event for item: {order_item}", file=sys.stdout, flush=True)
+        print(f"[EVENT] Publishing order_item_created event for item: {order_item}", file=sys.stdout, flush=True)
         await ws_manager.broadcast({
             "event": "order_item_created",
             "data": order_item
@@ -36,7 +36,7 @@ class EventBus:
 
     @staticmethod
     async def publish_order_item_updated(order_item):
-        print(f"Publishing order_item_updated event for item: {order_item}", file=sys.stdout, flush=True)
+        print(f"[EVENT] Publishing order_item_updated event for item: {order_item}", file=sys.stdout, flush=True)
         await ws_manager.broadcast({
             "event": "order_item_updated",
             "data": order_item
