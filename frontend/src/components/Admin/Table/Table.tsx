@@ -1,8 +1,15 @@
 import React from "react";
 import styles from "./Table.module.css";
+import { getNestedValue, renderCell } from "@/utils/processing";
 
-interface TableProps<T extends Record<string, any>> {
+interface Column {
+  key: string; // supports nested
+  label?: string;
+}
+
+interface TableProps<T> {
   data: T[];
+  columns: Column[]; // required for full control
   className?: string;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
@@ -10,6 +17,7 @@ interface TableProps<T extends Record<string, any>> {
 
 export function Table<T extends Record<string, any>>({
   data,
+  columns,
   className,
   onEdit,
   onDelete,
@@ -18,25 +26,26 @@ export function Table<T extends Record<string, any>>({
     return <div className={styles["table-container"]}>No data</div>;
   }
 
-  const keys = Object.keys(data[0]) as (keyof T)[];
-
   return (
     <div className={styles["table-container"]}>
       <table className={`${styles.table} ${className ?? ""}`}>
         <thead>
           <tr>
-            {keys.map((key) => (
-              <th key={String(key)}>{String(key)}</th>
+            {columns.map((col) => (
+              <th key={col.key}>{col.label ?? col.key}</th>
             ))}
             {(onEdit || onDelete) && <th>Actions</th>}
           </tr>
         </thead>
+
         <tbody>
           {data.map((row, idx) => (
             <tr key={idx}>
-              {keys.map((key) => (
-                <td key={String(key)}>{row[key] ?? ""}</td>
-              ))}
+              {columns.map((col) => {
+                const value = getNestedValue(row, col.key);
+                return <td key={col.key}>{renderCell(value)}</td>;
+              })}
+
               {(onEdit || onDelete) && (
                 <td>
                   {onEdit && (

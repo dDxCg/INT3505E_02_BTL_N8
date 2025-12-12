@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FilterBar } from "@/components/Admin/Filter/FilterBar";
 import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
@@ -66,6 +66,23 @@ const EquipmentTypePage: React.FC = () => {
     setShowForm(true);
   };
 
+  useEffect(() => {
+    const fetchTypes = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:8000/api/v1/resources/equipment-types"
+        );
+        const body = await res.json();
+        const items = Array.isArray(body) ? body : body.data ?? [];
+        setEquipmentTypes(items);
+      } catch (err) {
+        console.error("Failed to fetch equipment types:", err);
+      }
+    };
+
+    fetchTypes();
+  }, []);
+
   return (
     <div>
       <FilterBar
@@ -80,13 +97,19 @@ const EquipmentTypePage: React.FC = () => {
           Add Equipment Type
         </button>
       </div>
+
       <div style={{ marginTop: "16px" }}>
         <Table
           data={equipmentTypes}
+          columns={[
+            { key: "id", label: "ID" },
+            { key: "name", label: "Type" },
+          ]}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </div>
+
       <Popup open={showForm} onClose={closeForm}>
         <Form<EquipmentType>
           fields={formFields}
