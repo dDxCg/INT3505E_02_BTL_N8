@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import PaymentUserScreen from './pages/PaymentUser/PaymentUserScreen';
 import PaymentVNPayScreen from './pages/PaymentUser/PaymentVNPayScreen';
 
-
 // Guest Pages
 import GuestOrderPage from './pages/guest';
 import MyOrderPage from './pages/guest/my-order';
@@ -12,6 +11,11 @@ import MyOrderPage from './pages/guest/my-order';
 import StaffDashboard from './pages/StaffDashboard';
 import StaffTableDetail from './pages/StaffTableDetail';
 import POSPage from './pages/pos';
+import TablesPage from './pages/TablesPage';
+import OrdersPage from './pages/OrdersPage';
+
+// Staff Layout
+import StaffLayout from './components/staff/shared/StaffLayout';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,26 +35,27 @@ function App() {
           {/* Default redirect */}
           <Route path="/" element={<Navigate to="/staff" replace />} />
 
-          {/* Guest Routes */}
+          {/* Guest Routes - NO LAYOUT */}
           <Route path="/order" element={<GuestOrderPage />} />
           <Route path="/order/:tableId" element={<GuestOrderPage />} />
           <Route path="/my-order" element={<MyOrderPage />} />
           <Route path="/my-order/:tableId" element={<MyOrderPage />} />
 
-          {/* Staff Routes */}
-          <Route path="/staff" element={<StaffDashboard />} />
-          <Route path="/staff/table/:tableId" element={<StaffTableDetail />} />
-          <Route path="/staff/pos" element={<POSPage />} />
+          {/* Staff Routes - WITH STAFF LAYOUT */}
+          <Route path="/staff" element={<StaffLayout />}>
+            <Route index element={<StaffDashboard />} />
+            <Route path="tables" element={<TablesPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="pos" element={<POSPage />} />
+            <Route path="table/:tableId" element={<StaffTableDetail />} />
+          </Route>
 
-          {/* Payment Routes – luồng thật */}
+          {/* Payment Routes - NO LAYOUT */}
           <Route
             path="/staff/payment/order/:orderId"
             element={<PaymentUserScreen />}
           />
-          {/*Thanh toán QR*/}
           <Route path="/payment/vnpay-demo" element={<PaymentVNPayScreen />} />
-
-          {/* Giữ lại demo cũ nếu muốn */}
           <Route path="/payment-demo" element={<PaymentUserScreen />} />
 
           {/* 404 */}

@@ -278,19 +278,12 @@ export default function StaffTableDetail() {
                           <h3 className="font-bold text-gray-900 text-base">
                             {item.dish.name}
                           </h3>
-<<<<<<< HEAD
                           <div className="flex items-center gap-3 mt-2 text-sm">
                             <span className="text-gray-500">
                               SL: <span className="font-semibold text-gray-900">{item.quantity}</span>
                             </span>
                             <span className="text-orange-600 font-bold">
                               {formatPrice(item.dish.price * item.quantity)}
-=======
-                          <div className="text-sm text-gray-600 mt-1">
-                            Số lượng{' '}
-                            <span className="font-semibold">
-                              {item.quantity}
->>>>>>> c560e8d80c891cc40562ef6b8484d6e17e5f33cf
                             </span>
                           </div>
                         </div>
@@ -468,7 +461,6 @@ export default function StaffTableDetail() {
 
       {/* Mobile-Only Sticky Payment Footer */}
       {activeOrder && orderItems.length > 0 && (
-<<<<<<< HEAD
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50" style={{ boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)' }}>
           <div className="px-4 py-4">
             {/* Breakdown - Collapsible or always visible */}
@@ -513,32 +505,6 @@ export default function StaffTableDetail() {
                 )}
               </button>
             </div>
-=======
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-blue-500 shadow-lg z-20">
-          <div className="max-w-4xl mx-auto px-4 py-4">
-            <button
-              onClick={handlePayment}
-              disabled={paymentLoading || pendingItems.length > 0}
-              className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold text-xl hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {paymentLoading ? (
-                <>
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                  Đang xử lý...
-                </>
-              ) : pendingItems.length > 0 ? (
-                <>
-                  <AlertCircle className="w-6 h-6" />
-                  Còn {pendingItems.length} món chưa lên
-                </>
-              ) : (
-                <>
-                  <DollarSign className="w-6 h-6" />
-                  Thanh toán - {formatPrice(totalAmount)}
-                </>
-              )}
-            </button>
->>>>>>> c560e8d80c891cc40562ef6b8484d6e17e5f33cf
 
             {pendingItems.length > 0 && (
               <p className="text-center text-xs text-gray-500">
