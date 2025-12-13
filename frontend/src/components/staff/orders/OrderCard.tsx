@@ -4,11 +4,16 @@ import type { Order } from "../../../types/staff.types";
 
 interface OrderCardProps {
   order: Order;
+  onClick?: () => void;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
+const OrderCard: React.FC<OrderCardProps> = ({ order, onClick }) => {
   return (
-    <div key={order.id} className="w-[500px] bg-[#262626] p-4 rounded-lg mb-4">
+    <div
+      key={order.id}
+      onClick={onClick}
+      className="w-[500px] bg-[#262626] p-4 rounded-lg mb-4 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+    >
       <div className="flex items-center gap-5">
         <button className="bg-[#f6b100] p-3 text-xl font-bold rounded-lg">
           {getAvatarName(order.customer)}

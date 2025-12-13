@@ -144,6 +144,17 @@ export const useDeleteOrder = () => {
   });
 };
 
+export const useCompleteOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => ordersApi.complete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
+    },
+  });
+};
+
 // ============================================
 // Order Items Hooks
 // ============================================

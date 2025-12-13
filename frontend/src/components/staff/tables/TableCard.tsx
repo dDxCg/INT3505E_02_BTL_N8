@@ -14,15 +14,8 @@ const TableCard: React.FC<TableCardProps> = ({ id, name, status, initials, seats
   const navigate = useNavigate();
 
   const handleClick = () => {
-    // Navigate to POS with table data
-    navigate(`/staff/pos`, {
-      state: {
-        tableId: id,
-        tableNo: name,
-        seats: seats,
-        status: status
-      }
-    });
+    // Navigate to table detail page
+    navigate(`/staff/table/${id}`);
   };
 
   return (

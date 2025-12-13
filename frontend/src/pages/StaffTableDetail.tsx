@@ -16,6 +16,7 @@ import {
   deleteOrderItem,
 } from '../services/api';
 import type { TableRead, OrderRead, OrderItemRead } from '../types/schema';
+import { toast } from 'react-toastify';
 
 export default function StaffTableDetail() {
   const { tableId } = useParams<{ tableId: string }>();
@@ -27,7 +28,6 @@ export default function StaffTableDetail() {
   const [orderItems, setOrderItems] = useState<OrderItemRead[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
-  const [paymentLoading, setPaymentLoading] = useState(false);
 
   // ============================================
   // FETCH DATA WITH AUTO-REFRESH
@@ -85,9 +85,10 @@ export default function StaffTableDetail() {
       setActionLoading(itemId);
       await updateItemStatus(itemId, { status_id: 2 }); // 2 = Served
       await fetchTableData(); // Refresh data
+      toast.success('Đã lên món thành công');
     } catch (error) {
       console.error('Failed to serve item:', error);
-      alert('Không thể lên món. Vui lòng thử lại.');
+      toast.error('Không thể lên món. Vui lòng thử lại.');
     } finally {
       setActionLoading(null);
     }
@@ -100,39 +101,27 @@ export default function StaffTableDetail() {
       setActionLoading(itemId);
       await deleteOrderItem(itemId);
       await fetchTableData(); // Refresh data
+      toast.success('Đã hủy món thành công');
     } catch (error) {
       console.error('Failed to cancel item:', error);
-      alert('Không thể hủy món. Vui lòng thử lại.');
+      toast.error('Không thể hủy món. Vui lòng thử lại.');
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handlePayment = async () => {
-    if (!activeOrder || !table) return;
+  const handleGoToPayment = () => {
+    if (!table) return;
 
-    const pendingItems = orderItems.filter((item) => item.status_id === 1);
-    if (pendingItems.length > 0) {
-      alert(`Vẫn còn ${pendingItems.length} món chưa lên, không thể thanh toán.`);
-      return;
-    }
-
-    if (!confirm('Xác nhận chuyển sang màn thanh toán cho bàn này?')) return;
-
-    try {
-      setPaymentLoading(true);
-
-      navigate(`/staff/payment/order/${activeOrder.id}`, {
-        state: {
-          tableLabel: table.number.toString(),
-        },
-      });
-    } catch (error) {
-      console.error('Failed to go to payment screen:', error);
-      alert('Không thể chuyển sang màn thanh toán. Vui lòng thử lại.');
-    } finally {
-      setPaymentLoading(false);
-    }
+    // Navigate to POS page for payment
+    navigate('/staff/pos', {
+      state: {
+        tableId: table.id,
+        tableNo: table.number.toString(),
+        seats: table.seats,
+        status: 'Occupied'
+      }
+    });
   };
 
   // ============================================
@@ -425,33 +414,12 @@ export default function StaffTableDetail() {
 
                   {/* Action Button */}
                   <button
-                    onClick={handlePayment}
-                    disabled={paymentLoading || pendingItems.length > 0}
-                    className="w-full px-6 py-4 bg-red-600 text-white rounded-xl font-bold text-lg hover:bg-red-700 transition-all shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                    onClick={handleGoToPayment}
+                    className="w-full px-6 py-4 bg-red-600 text-white rounded-xl font-bold text-lg hover:bg-red-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
                   >
-                    {paymentLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Đang xử lý...
-                      </>
-                    ) : pendingItems.length > 0 ? (
-                      <>
-                        <AlertCircle className="w-5 h-5" />
-                        Chờ {pendingItems.length} món
-                      </>
-                    ) : (
-                      <>
-                        <Printer className="w-5 h-5" />
-                        In hóa đơn
-                      </>
-                    )}
+                    <Printer className="w-5 h-5" />
+                    Đi đến thanh toán
                   </button>
-
-                  {pendingItems.length > 0 && (
-                    <p className="text-center text-xs text-gray-500 mt-3">
-                      Vui lòng lên hết món trước khi thanh toán
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -483,34 +451,13 @@ export default function StaffTableDetail() {
               </div>
 
               <button
-                onClick={handlePayment}
-                disabled={paymentLoading || pendingItems.length > 0}
-                className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-base hover:bg-red-700 transition-all shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                onClick={handleGoToPayment}
+                className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-base hover:bg-red-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
               >
-                {paymentLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="hidden sm:inline">Đang xử lý...</span>
-                  </>
-                ) : pendingItems.length > 0 ? (
-                  <>
-                    <AlertCircle className="w-5 h-5" />
-                    <span>Chờ {pendingItems.length}</span>
-                  </>
-                ) : (
-                  <>
-                    <Printer className="w-5 h-5" />
-                    <span>In hóa đơn</span>
-                  </>
-                )}
+                <Printer className="w-5 h-5" />
+                <span>Thanh toán</span>
               </button>
             </div>
-
-            {pendingItems.length > 0 && (
-              <p className="text-center text-xs text-gray-500">
-                Vui lòng lên hết món trước khi thanh toán
-              </p>
-            )}
           </div>
         </div>
       )}

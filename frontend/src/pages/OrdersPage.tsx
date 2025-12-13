@@ -1,11 +1,53 @@
 import { useState, useEffect, useMemo } from "react";
 import BackButton from "../components/staff/shared/BackButton";
 import OrderCard from "../components/staff/orders/OrderCard";
-import { useOrders, useOrderItems } from "../hooks/useApi";
+import OrderDetailModal from "../components/staff/orders/OrderDetailModal";
+import { useOrders, useOrderItems, useOrderTotal } from "../hooks/useApi";
 import type { Order } from "../types/staff.types";
+import type { OrderRead } from "../types";
+
+// Wrapper component that fetches total and items count for a single order
+const OrderCardWithData: React.FC<{ orderData: OrderRead; onOrderClick: (order: Order) => void }> = ({ orderData, onOrderClick }) => {
+  // Fetch order total from API
+  const { data: totalData } = useOrderTotal(orderData.id);
+
+  // Fetch order items to count them
+  const { data: orderItems } = useOrderItems({ order_id: orderData.id });
+
+  // Map status_id to status name
+  const getStatusName = (statusId: number): string => {
+    switch (statusId) {
+      case 1:
+        return "Pending";
+      case 2:
+        return "In Progress";
+      case 3:
+        return "Ready";
+      case 4:
+        return "Completed";
+      case 5:
+        return "Cancelled";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const order: Order = {
+    id: orderData.id.toString(),
+    customer: orderData.guest_id ? `Guest ${orderData.guest_id}` : `Customer ${orderData.id}`,
+    tableNo: orderData.table_id.toString(),
+    status: getStatusName(orderData.status_id),
+    dateTime: new Date().toISOString(),
+    items: orderItems?.length || 0,
+    total: totalData?.total || 0,
+  };
+
+  return <OrderCard order={order} onClick={() => onOrderClick(order)} />;
+};
 
 const OrdersPage: React.FC = () => {
   const [status, setStatus] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // Map status filter to status_id
   const getStatusId = (statusFilter: string): number | undefined => {
@@ -38,43 +80,7 @@ const OrdersPage: React.FC = () => {
     console.log("OrdersPage - Status filter:", status);
     console.log("OrdersPage - Status ID:", statusId);
     console.log("OrdersPage - Orders data:", ordersData);
-    console.log("OrdersPage - Mapped orders:", orders);
-  }, [status, statusId, ordersData, orders]);
-
-  // Map backend orders to frontend Order type
-  const orders: Order[] = useMemo(() => {
-    if (!ordersData) return [];
-
-    return ordersData.map((order) => {
-      // Map status_id to status name
-      const getStatusName = (statusId: number): string => {
-        switch (statusId) {
-          case 1:
-            return "Pending";
-          case 2:
-            return "In Progress";
-          case 3:
-            return "Ready";
-          case 4:
-            return "Completed";
-          case 5:
-            return "Cancelled";
-          default:
-            return "Unknown";
-        }
-      };
-
-      return {
-        id: order.id.toString(),
-        customer: order.guest_id ? `Guest ${order.guest_id}` : `Customer ${order.id}`,
-        tableNo: order.table_id.toString(),
-        status: getStatusName(order.status_id),
-        dateTime: new Date().toISOString(), // Backend doesn't provide created_at, using current time
-        items: 0, // Will be updated if we fetch order items
-        total: 0, // Will be updated if we fetch order total
-      };
-    });
-  }, [ordersData]);
+  }, [status, statusId, ordersData]);
 
   // Loading state
   if (isLoading) {
@@ -150,14 +156,22 @@ const OrdersPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-3 px-16 py-4 overflow-y-scroll scrollbar-hide">
-        {orders.length > 0 ? (
-          orders.map((order) => {
-            return <OrderCard key={order.id} order={order} />;
+        {ordersData && ordersData.length > 0 ? (
+          ordersData.map((orderData) => {
+            return <OrderCardWithData key={orderData.id} orderData={orderData} onOrderClick={setSelectedOrder} />;
           })
         ) : (
           <p className="col-span-3 text-gray-500">No orders available</p>
         )}
       </div>
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+        />
+      )}
     </section>
   );
 };

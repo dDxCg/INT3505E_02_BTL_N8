@@ -11,6 +11,7 @@ import {
 } from '../../hooks/useApi';
 import { OrderItemCard } from '../../components/staff/OrderItemCard';
 import type { OrderRead, OrderItemRead } from '../../types';
+import { toast } from 'react-toastify';
 
 export const TableDetailPage = () => {
   const { tableId } = useParams<{ tableId: string }>();
@@ -59,9 +60,10 @@ export const TableDetailPage = () => {
         data: { status_id: statusId },
       });
       refetchItems();
+      toast.success('Đã cập nhật trạng thái món');
     } catch (error) {
       console.error('Failed to update item status:', error);
-      alert('Có lỗi khi cập nhật trạng thái món');
+      toast.error('Có lỗi khi cập nhật trạng thái món');
     }
   };
 
@@ -93,11 +95,11 @@ export const TableDetailPage = () => {
         data: { status_id: 3 },
       });
 
-      alert('Thanh toán thành công!');
+      toast.success('Thanh toán thành công!');
       navigate('/staff');
     } catch (error) {
       console.error('Payment failed:', error);
-      alert('Có lỗi khi thanh toán. Vui lòng thử lại.');
+      toast.error('Có lỗi khi thanh toán. Vui lòng thử lại.');
     } finally {
       setIsPaymentProcessing(false);
     }

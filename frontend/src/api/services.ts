@@ -50,6 +50,7 @@ export const ordersApi = {
     apiClient.put<OrderRead>(`/orders/${id}`, data),
   delete: (id: number) => apiClient.delete<OrderRead>(`/orders/${id}`),
   getTotal: (id: number) => apiClient.get<number>(`/orders/${id}/total`),
+  complete: (id: number) => apiClient.post<OrderRead>(`/orders/${id}/complete`),
 
   /**
    * Get active order for a table

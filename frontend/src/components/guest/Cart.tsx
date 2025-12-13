@@ -4,6 +4,7 @@ import { useCreateOrder, useCreateOrderItem, useOrders } from '../../hooks/useAp
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { OrderRead } from '../../types';
+import { toast } from 'react-toastify';
 
 interface CartProps {
   tableId: number;
@@ -42,14 +43,19 @@ export const Cart = ({ tableId, onClose }: CartProps) => {
 
       if (activeOrder) {
         // Use existing active order
+        console.log('Using existing active order:', activeOrder.id);
         orderId = activeOrder.id;
       } else {
         // Create new order
-        const orderResponse = await createOrder.mutateAsync({
+        console.log('Creating new order for table:', tableId);
+        const orderData = {
           table_id: tableId,
           status_id: 1, // Pending
-        });
+        };
+        console.log('Order data being sent:', orderData);
+        const orderResponse = await createOrder.mutateAsync(orderData);
         orderId = orderResponse.data.id;
+        console.log('Order created with ID:', orderId);
       }
 
       // Step 2: Add all items to the order (existing or new)
@@ -64,16 +70,18 @@ export const Cart = ({ tableId, onClose }: CartProps) => {
 
       // Step 3: Clear cart and show success
       clearCart();
-      alert(activeOrder ? 'Món mới đã được thêm vào đơn!' : 'Đã gửi order đến bếp thành công!');
+      toast.success(activeOrder ? 'Món mới đã được thêm vào đơn!' : 'Đã gửi order đến bếp thành công!');
       onClose?.();
 
       // Redirect to My Order page
       setTimeout(() => {
         navigate(`/my-order/${tableId}`);
       }, 500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to submit order:', error);
-      alert('Có lỗi xảy ra khi gửi order. Vui lòng thử lại.');
+      console.error('Error details:', error.response?.data);
+      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error';
+      toast.error(`Có lỗi xảy ra: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }

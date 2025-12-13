@@ -96,7 +96,7 @@ export default function POSPage() {
         <CartInfo existingOrderItems={orderItems} />
         <hr className="border-[#2a2a2a] border-t-2" />
         {/* Bills */}
-        <Bill />
+        <Bill activeOrder={activeOrder} existingOrderItems={orderItems} />
       </div>
     </section>
   );
