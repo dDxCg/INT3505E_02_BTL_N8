@@ -1,16 +1,58 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { GrRadialSelected } from "react-icons/gr";
 import { FaShoppingCart } from "react-icons/fa";
 import { usePOSStore } from "../../../stores/posStore";
+import { useDishes } from "../../../hooks/useApi";
 import type { MenuCategory, MenuItem } from "../../../types/staff.types";
 
 const MenuContainer: React.FC = () => {
-  const menus = usePOSStore((state) => state.menus);
+  // Fetch dishes from API
+  const { data: dishesData, isLoading } = useDishes();
   const addToCart = usePOSStore((state) => state.addToCart);
 
-  const [selected, setSelected] = useState<MenuCategory>(menus[0]);
+  // Create menu categories from API dishes
+  const menus: MenuCategory[] = useMemo(() => {
+    if (!dishesData) return [];
+
+    // For now, put all dishes in one "All Items" category
+    // TODO: Backend should add category field to dishes table
+    const allItems: MenuItem[] = dishesData.map(dish => ({
+      id: dish.id,
+      name: dish.name,
+      price: typeof dish.price === 'string' ? parseFloat(dish.price) : dish.price,
+      category: "All Items"
+    }));
+
+    return [
+      {
+        id: 1,
+        name: "All Items",
+        bgColor: "#b73e3e",
+        icon: "🍽️",
+        items: allItems
+      }
+    ];
+  }, [dishesData]);
+
+  const [selected, setSelected] = useState<MenuCategory | null>(null);
   const [itemCount, setItemCount] = useState(0);
   const [itemId, setItemId] = useState<number>();
+
+  // Set default selected category when menus load
+  useEffect(() => {
+    if (menus.length > 0 && !selected) {
+      setSelected(menus[0]);
+    }
+  }, [menus, selected]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[500px]">
+        <p className="text-[#f5f5f5] text-xl">Loading menu...</p>
+      </div>
+    );
+  }
 
   const increment = (id: number) => {
     setItemId(id);
@@ -27,9 +69,10 @@ const MenuContainer: React.FC = () => {
   const handleAddToCart = (item: MenuItem) => {
     if (itemCount === 0) return;
 
-    const { name, price } = item;
+    const { id, name, price } = item;
     const newCartItem = {
       id: Date.now(), // Unique ID for cart item
+      dish_id: id, // Store original dish ID for API calls
       name,
       pricePerQuantity: price,
       quantity: itemCount,
@@ -60,7 +103,7 @@ const MenuContainer: React.FC = () => {
                 <h1 className="text-[#f5f5f5] text-lg font-semibold">
                   {menu.icon} {menu.name}
                 </h1>
-                {selected.id === menu.id && (
+                {selected?.id === menu.id && (
                   <GrRadialSelected className="text-white" size={20} />
                 )}
               </div>
@@ -95,7 +138,7 @@ const MenuContainer: React.FC = () => {
               </div>
               <div className="flex items-center justify-between w-full">
                 <p className="text-[#f5f5f5] text-xl font-bold">
-                  ₹{item.price}
+                  {item.price.toLocaleString('vi-VN')}₫
                 </p>
                 <div className="flex items-center justify-between bg-[#1f1f1f] px-4 py-3 rounded-lg gap-6 w-[50%]">
                   <button

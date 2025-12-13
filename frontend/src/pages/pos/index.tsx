@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { MdRestaurantMenu } from "react-icons/md";
 import BackButton from "../../components/staff/shared/BackButton";
 import MenuContainer from "../../components/staff/pos/MenuContainer";
@@ -6,9 +7,53 @@ import CustomerInfo from "../../components/staff/pos/CustomerInfo";
 import CartInfo from "../../components/staff/pos/CartInfo";
 import Bill from "../../components/staff/pos/Bill";
 import { usePOSStore } from "../../stores/posStore";
+import { useOrders, useOrderItems } from "../../hooks/useApi";
 
 export default function POSPage() {
+  const location = useLocation();
   const customer = usePOSStore((state) => state.customer);
+  const updateTable = usePOSStore((state) => state.updateTable);
+
+  // Get table data from navigation state
+  const tableData = location.state as {
+    tableId: number;
+    tableNo: string;
+    seats: number;
+    status: string;
+  } | null;
+
+  // Fetch orders for this table
+  const { data: ordersData } = useOrders(
+    tableData?.tableId ? { table_id: tableData.tableId } : {},
+    {
+      enabled: !!tableData?.tableId,
+      refetchInterval: 5000, // Refresh every 5 seconds
+    }
+  );
+
+  // Get the active order (status_id 1 or 2: pending or cooking)
+  const activeOrder = ordersData?.find(order =>
+    order.status_id && order.status_id >= 1 && order.status_id <= 2
+  );
+
+  // Fetch order items if there's an active order
+  const { data: orderItems } = useOrderItems(
+    activeOrder ? { order_id: activeOrder.id } : undefined,
+    {
+      enabled: !!activeOrder,
+      refetchInterval: 5000,
+    }
+  );
+
+  // Update POS store with table data from navigation
+  useEffect(() => {
+    if (tableData) {
+      updateTable({
+        tableId: tableData.tableId,
+        tableNo: tableData.tableNo,
+      });
+    }
+  }, [tableData, updateTable]);
 
   useEffect(() => {
     document.title = "POS | Menu";
@@ -47,8 +92,8 @@ export default function POSPage() {
         {/* Customer Info */}
         <CustomerInfo />
         <hr className="border-[#2a2a2a] border-t-2" />
-        {/* Cart Items */}
-        <CartInfo />
+        {/* Cart Items + Existing Order Items */}
+        <CartInfo existingOrderItems={orderItems} />
         <hr className="border-[#2a2a2a] border-t-2" />
         {/* Bills */}
         <Bill />

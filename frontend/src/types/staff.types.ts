@@ -64,6 +64,7 @@ export interface CustomerDetails {
 
 export interface CartItem {
   id: number;
+  dish_id?: number; // Original dish ID from API for order creation
   name: string;
   pricePerQuantity: number;
   quantity: number;

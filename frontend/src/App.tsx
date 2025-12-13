@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import PaymentUserScreen from './pages/PaymentUser/PaymentUserScreen';
 import PaymentVNPayScreen from './pages/PaymentUser/PaymentVNPayScreen';
 
@@ -62,6 +64,18 @@ function App() {
           <Route path="*" element={<Navigate to="/staff" replace />} />
         </Routes>
       </BrowserRouter>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </QueryClientProvider>
   );
 }

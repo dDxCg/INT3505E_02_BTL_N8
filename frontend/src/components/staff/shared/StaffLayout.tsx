@@ -1,11 +1,15 @@
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
+import { useWebSocket } from "../../../hooks/useWebSocket";
 
 const StaffLayout: React.FC = () => {
   // TODO: Get user data from Zustand store
   const userName = "TEST USER";
   const userRole = "Admin";
+
+  // Initialize WebSocket connection for real-time updates
+  const { isConnected } = useWebSocket();
 
   const handleLogout = () => {
     // TODO: Implement logout logic with Zustand

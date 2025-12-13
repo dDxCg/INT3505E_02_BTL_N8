@@ -5,7 +5,7 @@ import { FaLongArrowAltRight } from "react-icons/fa";
 interface TableCardProps {
   id: number;
   name: string;
-  status: "Booked" | "Available";
+  status: "Occupied" | "Available";
   initials?: string;
   seats: number;
 }
@@ -13,16 +13,21 @@ interface TableCardProps {
 const TableCard: React.FC<TableCardProps> = ({ id, name, status, initials, seats }) => {
   const navigate = useNavigate();
 
-  const handleClick = (name: string) => {
-    if (status === "Booked") return;
-
-    // TODO: Update customer table in Zustand store
-    navigate(`/staff/pos`);
+  const handleClick = () => {
+    // Navigate to POS with table data
+    navigate(`/staff/pos`, {
+      state: {
+        tableId: id,
+        tableNo: name,
+        seats: seats,
+        status: status
+      }
+    });
   };
 
   return (
     <div
-      onClick={() => handleClick(name)}
+      onClick={handleClick}
       key={id}
       className="w-[300px] hover:bg-[#2c2c2c] bg-[#262626] p-4 rounded-lg cursor-pointer"
     >
@@ -32,7 +37,7 @@ const TableCard: React.FC<TableCardProps> = ({ id, name, status, initials, seats
         </h1>
         <p
           className={`${
-            status === "Booked" ? "text-green-600 bg-[#2e4a40]" : "bg-[#664a04] text-white"
+            status === "Occupied" ? "text-green-600 bg-[#2e4a40]" : "bg-[#664a04] text-white"
           } px-2 py-1 rounded-lg`}
         >
           {status}
