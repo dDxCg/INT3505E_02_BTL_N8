@@ -1,6 +1,7 @@
 import { useState } from "react";
 import StarRating from "./StarRating";
 import styles from "./FeedbackForm.module.css";
+import { toast } from "react-toastify";
 
 export default function FeedbackForm() {
   const [stars, setStars] = useState(0);
@@ -8,9 +9,12 @@ export default function FeedbackForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stars) return alert("Please select a star rating!");
+    if (!stars) {
+      toast.warning("Please select a star rating!");
+      return;
+    }
     console.log({ stars, comment });
-    alert("Feedback submitted!");
+    toast.success("Feedback submitted!");
     setStars(0);
     setComment("");
   };

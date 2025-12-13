@@ -292,22 +292,24 @@ export default function MyOrderPage() {
   // LOADING STATE: Show skeleton/spinner while initial data loads
   if (ordersLoading) {
     return (
-      <div className="min-h-screen bg-[#f9fafb]">
-        <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative">
-          <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-            <div className="flex items-center justify-between px-5 py-4">
-              <button onClick={handleBackToMenu} className="p-1.5 -ml-1.5">
-                <ArrowLeft size={22} className="text-[#4a4238]" />
-              </button>
-              <h1 className="font-serif text-xl font-semibold text-gray-800">Đơn hàng của tôi</h1>
-              <div className="w-9"></div>
+      <div className="min-h-screen w-full bg-gray-50 flex justify-center items-start pt-6 pb-24">
+        <div className="w-full max-w-md bg-white min-h-[90vh] sm:rounded-[32px] shadow-2xl overflow-hidden relative">
+          <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+            <div className="px-5 py-4">
+              <div className="flex items-center justify-between mb-1">
+                <button onClick={handleBackToMenu} className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition">
+                  <ArrowLeft size={20} className="text-[#4a4238]" />
+                </button>
+                <h1 className="font-['Playfair_Display'] text-xl font-bold text-gray-900 tracking-normal">Đơn hàng của tôi</h1>
+                <div className="w-10"></div>
+              </div>
             </div>
           </header>
 
           <div className="flex flex-col items-center justify-center min-h-[70vh] px-5">
             <Loader2 className="animate-spin text-[#ea580c] mb-4" size={52} />
-            <h2 className="font-serif text-2xl font-semibold text-gray-800 mb-2">Đang tải...</h2>
-            <p className="text-sm text-gray-600">Vui lòng đợi trong giây lát</p>
+            <h2 className="font-['Playfair_Display'] text-2xl font-semibold text-gray-800 mb-2 tracking-normal">Đang tải...</h2>
+            <p className="font-['Inter'] text-sm text-gray-600">Vui lòng đợi trong giây lát</p>
           </div>
         </div>
       </div>
@@ -318,22 +320,24 @@ export default function MyOrderPage() {
   // Show friendly message before triggering reset
   if (showWaitingState && !activeOrder) {
     return (
-      <div className="min-h-screen bg-[#f9fafb]">
-        <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative">
-          <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-            <div className="flex items-center justify-between px-5 py-4">
-              <button onClick={handleBackToMenu} className="p-1.5 -ml-1.5">
-                <ArrowLeft size={22} className="text-[#4a4238]" />
-              </button>
-              <h1 className="font-serif text-xl font-semibold text-gray-800">Đơn hàng của tôi</h1>
-              <div className="w-9"></div>
+      <div className="min-h-screen w-full bg-gray-50 flex justify-center items-start pt-6 pb-24">
+        <div className="w-full max-w-md bg-white min-h-[90vh] sm:rounded-[32px] shadow-2xl overflow-hidden relative">
+          <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+            <div className="px-5 py-4">
+              <div className="flex items-center justify-between mb-1">
+                <button onClick={handleBackToMenu} className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition">
+                  <ArrowLeft size={20} className="text-[#4a4238]" />
+                </button>
+                <h1 className="font-['Playfair_Display'] text-xl font-bold text-gray-900 tracking-normal">Đơn hàng của tôi</h1>
+                <div className="w-10"></div>
+              </div>
             </div>
           </header>
 
           <div className="flex flex-col items-center justify-center min-h-[70vh] px-5 text-center">
             <Clock className="text-[#ea580c] mb-5 animate-pulse" size={68} />
-            <h2 className="font-serif text-2xl font-semibold text-gray-800 mb-3">Đang kiểm tra...</h2>
-            <p className="text-sm text-gray-600 mb-8 leading-relaxed max-w-xs">
+            <h2 className="font-['Playfair_Display'] text-2xl font-semibold text-gray-800 mb-3 tracking-normal">Đang kiểm tra...</h2>
+            <p className="font-['Inter'] text-sm text-gray-600 mb-8 leading-relaxed max-w-xs">
               Đang tìm kiếm đơn hàng của bạn.<br />
               Nếu bàn đã đóng, bạn sẽ được chuyển đến thực đơn.
             </p>
@@ -351,28 +355,30 @@ export default function MyOrderPage() {
   // EMPTY STATE: Definitely no order exists (for new guests)
   if (!activeOrder && !showWaitingState) {
     return (
-      <div className="min-h-screen bg-[#f9fafb]">
-        <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative">
-          <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-            <div className="flex items-center justify-between px-5 py-4">
-              <button onClick={handleBackToMenu} className="p-1.5 -ml-1.5">
-                <ArrowLeft size={22} className="text-[#4a4238]" />
-              </button>
-              <h1 className="font-serif text-xl font-semibold text-gray-800">Đơn hàng của tôi</h1>
-              <div className="w-9"></div>
+      <div className="min-h-screen w-full bg-gray-50 flex justify-center items-start pt-6 pb-24">
+        <div className="w-full max-w-md bg-white min-h-[90vh] sm:rounded-[32px] shadow-2xl overflow-hidden relative">
+          <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+            <div className="px-5 py-4">
+              <div className="flex items-center justify-between mb-1">
+                <button onClick={handleBackToMenu} className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition">
+                  <ArrowLeft size={20} className="text-[#4a4238]" />
+                </button>
+                <h1 className="font-['Playfair_Display'] text-xl font-bold text-gray-900 tracking-normal">Đơn hàng của tôi</h1>
+                <div className="w-10"></div>
+              </div>
             </div>
           </header>
 
           <div className="flex flex-col items-center justify-center min-h-[70vh] px-5 text-center">
             <div className="text-7xl mb-5">🍽️</div>
-            <h2 className="font-serif text-3xl font-bold text-gray-800 mb-3">Chưa có đơn hàng</h2>
-            <p className="text-base text-gray-600 mb-8 max-w-sm leading-relaxed">
+            <h2 className="font-['Playfair_Display'] text-3xl font-bold text-gray-800 mb-3 tracking-normal">Chưa có đơn hàng</h2>
+            <p className="font-['Inter'] text-base text-gray-600 mb-8 max-w-sm leading-relaxed">
               Bạn chưa đặt món nào.<br />
               Hãy khám phá thực đơn nhé!
             </p>
             <button
               onClick={handleBackToMenu}
-              className="px-10 py-4 bg-[#4a4238] hover:bg-[#3a3228] text-white font-semibold rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="px-10 py-4 bg-[#4a4238] hover:bg-[#3a3228] text-white font-bold font-['Inter'] rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Xem thực đơn
             </button>
@@ -439,8 +445,8 @@ export default function MyOrderPage() {
   const statusMessage = getStatusMessage();
 
   return (
-    <div className="min-h-screen w-full bg-gray-100 flex justify-center items-start pt-0 sm:pt-10">
-      <div className="w-full max-w-md bg-white shadow-2xl min-h-screen sm:min-h-[90vh] sm:rounded-2xl relative overflow-hidden pb-32">
+    <div className="min-h-screen w-full bg-gray-50 flex justify-center items-start pt-6 pb-24">
+      <div className="w-full max-w-md bg-white min-h-[90vh] sm:rounded-[32px] shadow-2xl overflow-hidden relative">
         {/* Reset Notification Overlay */}
         {showResetNotification && (
           <div className="reset-notification-overlay">
@@ -458,97 +464,105 @@ export default function MyOrderPage() {
           </div>
         )}
 
-        {/* Elegant Restaurant Header */}
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-          <div className="flex items-center justify-between px-5 py-4">
-            <button onClick={handleBackToMenu} className="p-1.5 -ml-1.5 hover:bg-gray-50 rounded-full transition">
-              <ArrowLeft size={22} className="text-[#4a4238]" />
-            </button>
-            <h1 className="font-serif text-xl font-semibold text-gray-800">Đơn hàng của tôi</h1>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-full">
-              <span className="text-xs text-gray-600">Bàn</span>
-              <span className="text-sm font-bold text-gray-900">{activeOrder.table?.number || tableId}</span>
+        {/* Clean Serif Header */}
+        <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+          <div className="px-5 py-4">
+            <div className="flex items-center justify-between mb-1">
+              <button onClick={handleBackToMenu} className="p-2 -ml-2 hover:bg-gray-50 rounded-full transition">
+                <ArrowLeft size={20} className="text-[#4a4238]" />
+              </button>
+              <h1 className="font-['Playfair_Display'] text-xl font-bold text-gray-900 tracking-normal">Đơn hàng của tôi</h1>
+              <div className="w-10"></div>
+            </div>
+            <div className="flex justify-end">
+              <span className="font-['Inter'] text-sm text-gray-500">Bàn số <span className="font-bold text-gray-900">{activeOrder.table?.number || tableId}</span></span>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="px-5 py-5 space-y-6">
-          {/* Order Status Message */}
-          {statusMessage.badge && (
-            <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-center">
-              <p className="text-sm text-amber-900 font-medium">{statusMessage.badge}</p>
-            </div>
-          )}
-
-          {/* Elegant Timeline - Brown/Orange Theme */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 shadow-sm border border-amber-100">
-            <h3 className="font-serif text-base font-semibold text-gray-800 mb-4">Trạng thái đơn hàng</h3>
-
-            <div className="relative">
-              {/* Progress Line */}
-              <div className="absolute top-4 left-0 right-0 h-1 bg-gray-200 rounded-full">
-                <div
-                  className="h-full bg-gradient-to-r from-[#4a4238] to-[#ea580c] rounded-full transition-all duration-700 ease-out"
-                  style={{ width: `${((visualStep - 1) / (TIMELINE_STEPS.length - 1)) * 100}%` }}
-                ></div>
+        <main className="pb-32">
+          {/* HERO STATUS CARD - Dark Brown Gradient with Integrated Timeline */}
+          <div className="m-4 mb-8 p-6 pb-8 rounded-[24px] bg-gradient-to-r from-[#4a4238] to-[#5c5245] text-white shadow-lg">
+            {/* Top: Large Icon + Status */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+                <StatusIcon size={32} className={`${
+                  currentStep === TIMELINE_STEP.PLACING ? 'animate-pulse' : ''
+                }`} />
               </div>
+              <div className="flex-1">
+                <h2 className="font-['Playfair_Display'] text-2xl font-bold mb-1 tracking-normal">{statusMessage.title}</h2>
+                <p className="font-['Inter'] text-white/80 text-sm">{statusMessage.message}</p>
+              </div>
+            </div>
 
-              {/* Timeline Steps */}
-              <div className="relative flex justify-between">
-                {TIMELINE_STEPS.map((step) => {
-                  const StepIcon = step.icon;
-                  const isActive = step.id === visualStep;
-                  const isCompleted = step.id < visualStep;
+            {/* Integrated Timeline - White on Dark Brown */}
+            <div className="mt-6 pt-5 border-t border-white/20 px-2">
+              <div className="relative">
+                {/* Progress Line */}
+                <div className="absolute top-4 left-0 right-0 h-0.5 bg-white/50 rounded-full">
+                  <div
+                    className="h-full bg-white rounded-full transition-all duration-700 ease-out shadow-lg shadow-white/30"
+                    style={{ width: `${((visualStep - 1) / (TIMELINE_STEPS.length - 1)) * 100}%` }}
+                  ></div>
+                </div>
 
-                  return (
-                    <div key={step.id} className="flex flex-col items-center z-10">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        isCompleted ? 'bg-[#4a4238] text-white shadow-lg' :
-                        isActive ? 'bg-[#ea580c] text-white shadow-lg ring-4 ring-orange-100' :
-                        'bg-gray-200 text-gray-400'
-                      } ${isActive && currentStep === TIMELINE_STEP.PLACING ? 'animate-pulse' : ''}`}>
-                        {isCompleted ? <CheckCircle size={18} /> : <StepIcon size={18} />}
+                {/* Timeline Steps */}
+                <div className="relative flex justify-between mx-2">
+                  {TIMELINE_STEPS.map((step) => {
+                    const StepIcon = step.icon;
+                    const isActive = step.id === visualStep;
+                    const isCompleted = step.id < visualStep;
+
+                    return (
+                      <div key={step.id} className="flex flex-col items-center z-10">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          isCompleted ? 'bg-white text-[#4a4238] shadow-lg' :
+                          isActive ? 'bg-white text-[#4a4238] shadow-lg shadow-white/50 ring-4 ring-white/30 animate-pulse' :
+                          'bg-white/20 text-white/40'
+                        }`}>
+                          {isCompleted ? <CheckCircle size={16} /> : <StepIcon size={16} />}
+                        </div>
+                        <span className={`mt-2 text-xs font-medium transition-colors font-['Inter'] tracking-normal ${
+                          isCompleted || isActive ? 'text-white font-bold' :
+                          'text-white/40'
+                        }`}>
+                          {step.shortLabel}
+                        </span>
                       </div>
-                      <span className={`mt-2 text-xs font-medium transition-colors ${
-                        isCompleted ? 'text-[#4a4238]' :
-                        isActive ? 'text-[#ea580c]' :
-                        'text-gray-400'
-                      }`}>
-                        {step.shortLabel}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
-            {/* Send to Kitchen Button - Only show if in PLACING step */}
-            {currentStep === TIMELINE_STEP.PLACING && cartItems.length > 0 && (
-              <div className="mt-5 pt-4 border-t border-amber-200">
-                <button
-                  onClick={handleBackToMenu}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#ea580c] hover:bg-[#dc2626] text-white font-semibold rounded-full transition-all duration-200 shadow-md hover:shadow-lg"
-                >
-                  <ChefHat size={20} />
-                  <span>Gửi đến bếp</span>
-                </button>
-              </div>
-            )}
+              {/* Send to Kitchen Button - Inside Hero Card */}
+              {currentStep === TIMELINE_STEP.PLACING && cartItems.length > 0 && (
+                <div className="mt-6">
+                  <button
+                    onClick={handleBackToMenu}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#ea580c] hover:bg-[#dc2626] text-white font-bold font-['Inter'] rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <ChefHat size={20} />
+                    <span>Gửi đến bếp</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Order Items - Elegant Food Cards */}
-          <div className="space-y-4">
-            <h3 className="font-serif text-lg font-semibold text-gray-800">Món đã gọi</h3>
+          {/* Order Details Section */}
+          <div className="px-5 mt-6">
+            <h3 className="font-['Playfair_Display'] text-lg font-bold text-gray-900 mb-4 tracking-normal">Chi tiết đơn hàng</h3>
 
             {itemsLoading ? (
               <div className="flex flex-col items-center justify-center py-10">
                 <Loader2 className="animate-spin text-[#ea580c] mb-3" size={36} />
-                <p className="text-sm text-gray-600">Đang tải món ăn...</p>
+                <p className="font-['Inter'] text-sm text-gray-600">Đang tải món ăn...</p>
               </div>
             ) : orderItems.length === 0 ? (
               <div className="text-center py-10 bg-gray-50 rounded-xl">
-                <p className="text-gray-500">Chưa có món nào trong đơn hàng</p>
+                <p className="font-['Inter'] text-gray-500">Chưa có món nào trong đơn hàng</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -557,24 +571,24 @@ export default function MyOrderPage() {
                   return (
                     <div
                       key={item.id}
-                      className="flex gap-4 bg-white rounded-xl border border-gray-200 p-3.5 hover:shadow-lg hover:border-amber-200 transition-all duration-200"
+                      className="flex gap-3 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-all duration-200"
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
-                      {/* Image */}
+                      {/* Image - Left */}
                       <img
-                        src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=96&h=96&fit=crop"
+                        src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=80&h=80&fit=crop"
                         alt={item.dish.name}
-                        className="w-20 h-20 rounded-xl object-cover flex-shrink-0 shadow-sm"
+                        className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                         loading="lazy"
                       />
 
-                      {/* Content */}
+                      {/* Info - Right */}
                       <div className="flex-1 flex flex-col justify-between min-w-0">
                         <div>
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <h4 className="font-semibold text-gray-900 text-base leading-tight">{item.dish.name}</h4>
+                            <h4 className="font-['Inter'] font-semibold text-gray-900 text-sm leading-tight">{item.dish.name}</h4>
                             {item.status_id && (
-                              <span className={`px-2.5 py-1 text-xs font-medium rounded-full flex-shrink-0 ${
+                              <span className={`font-['Inter'] px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
                                 item.status_id === 1 ? 'bg-amber-100 text-amber-800' :
                                 item.status_id === 2 ? 'bg-orange-100 text-orange-800' :
                                 item.status_id === 3 ? 'bg-emerald-100 text-emerald-800' :
@@ -584,12 +598,12 @@ export default function MyOrderPage() {
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500">Số lượng: x{item.quantity}</p>
+                          <p className="font-['Inter'] text-xs text-gray-500 mb-2">x{item.quantity}</p>
                         </div>
 
-                        {/* Price - Bold Orange */}
-                        <div className="mt-2">
-                          <span className="text-lg font-bold text-[#ea580c]">
+                        {/* Price - Bright Orange, Bold */}
+                        <div>
+                          <span className="font-['Inter'] text-base font-bold text-[#ea580c]">
                             {formatPrice(parseFloat(item.dish.price) * item.quantity)}
                           </span>
                         </div>
@@ -600,23 +614,20 @@ export default function MyOrderPage() {
               </div>
             )}
           </div>
-
-          {/* Spacer for sticky footer */}
-          <div className="h-32"></div>
         </main>
 
-        {/* Sticky Footer - Total & Action Button - Centered on Desktop */}
-        <div className="fixed bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white border-t border-gray-200 px-5 py-4 shadow-2xl z-40 sm:rounded-b-2xl">
+        {/* Fixed Footer - Total & Action Button */}
+        <div className="fixed bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white border-t border-gray-200 px-5 py-4 shadow-2xl z-40 sm:rounded-b-[32px]">
           {/* Total Row */}
           <div className="flex items-center justify-between mb-3">
-            <span className="text-base font-medium text-gray-600">Tổng cộng</span>
-            <span className="text-2xl font-bold text-[#ea580c]">{formatPrice(total)}</span>
+            <span className="font-['Inter'] text-base font-medium text-gray-600">Tổng cộng</span>
+            <span className="font-['Inter'] text-2xl font-bold text-[#ea580c]">{formatPrice(total)}</span>
           </div>
 
-          {/* Main Action Button - Dark Brown */}
+          {/* Main Action Button - Solid Brown, Rounded-full */}
           <button
             onClick={handleBackToMenu}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-[#4a4238] hover:bg-[#3a3228] text-white font-semibold rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="w-full flex items-center justify-center gap-2 px-5 py-4 bg-[#4a4238] hover:bg-[#3a3228] text-white font-bold font-['Inter'] rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <Plus size={20} />
             <span>Gọi thêm món</span>

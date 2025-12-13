@@ -19,6 +19,8 @@ import type {
   OrderFilter,
   OrderItemFilter,
   DishFilter,
+  OrderRead,
+  OrderItemRead,
 } from '../types';
 
 // ============================================
@@ -114,6 +116,7 @@ export const useCreateOrder = () => {
     mutationFn: (data: OrderCreate) => ordersApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
     },
   });
 };
@@ -126,6 +129,7 @@ export const useUpdateOrder = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orders', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
     },
   });
 };
@@ -136,6 +140,17 @@ export const useDeleteOrder = () => {
     mutationFn: (id: number) => ordersApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+};
+
+export const useCompleteOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => ordersApi.complete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
     },
   });
 };
