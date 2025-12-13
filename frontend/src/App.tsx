@@ -18,9 +18,7 @@ import OrdersPage from './pages/OrdersPage';
 
 // Staff Layout
 import StaffLayout from './components/staff/shared/StaffLayout';
-import StaffDashboard from "./pages/StaffDashboard";
-import StaffTableDetail from "./pages/StaffTableDetail";
-import POSPage from "./pages/pos";
+
 
 import AdminPage from "@/pages/Admin/Admin";
 
