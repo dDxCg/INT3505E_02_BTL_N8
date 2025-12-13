@@ -1,8 +1,8 @@
-from .Equipment import (EquipmentCreate, EquipmentFilter, EquipmentUpdate,EquipmentRead,
+from .Equipment import (EquipmentCreate, EquipmentFilter, EquipmentUpdate,EquipmentReadBase, EquipmentReadExtended,
     EquipmentTypeCreate, EquipmentTypeUpdate, EquipmentStatusFilter,EquipmentTypeRead,
     EquipmentStatusCreate, EquipmentStatusUpdate, EquipmentTypeFilter, EquipmentStatusRead)
 
-from .Ingredient import (IngredientCreate, IngredientUpdate, IngredientFilter, IngredientRead,
+from .Ingredient import (IngredientCreate, IngredientUpdate, IngredientFilter, IngredientReadBase, IngredientReadExtended,
     IngredientUnitCreate, IngredientUnitUpdate, IngredientUnitFilter,IngredientUnitRead,
     IngredientHistoryCreate, IngredientHistoryRead, IngredientHistoryUpdate, IngredientHistoryFilter)
 

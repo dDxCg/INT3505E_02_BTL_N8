@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FilterBar } from "@/components/Admin/Filter/FilterBar";
 import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
@@ -10,8 +10,20 @@ interface Ingredient {
   name: string;
   quantity: number;
   threshold: number;
-  unit: string;
+  unit_id: number;
+  unit: {
+    id: number;
+    name: string;
+  };
 }
+
+const ingredientColumns = [
+  { key: "id", label: "ID" },
+  { key: "name", label: "Name" },
+  { key: "unit.name", label: "Unit" },
+  { key: "quantity", label: "Quantity" },
+  { key: "threshold", label: "Threshold" },
+];
 
 const formFields: FormField<Ingredient>[] = [
   { key: "name", label: "Name", type: "text" },
@@ -81,6 +93,23 @@ const IngredientPage: React.FC = () => {
     setShowForm(true);
   };
 
+  useEffect(() => {
+    const fetchIngredients = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:8000/api/v1/resources/ingredients"
+        );
+        const body = await res.json();
+        const items = Array.isArray(body) ? body : body.data ?? [];
+        setIngredients(items);
+      } catch (err) {
+        console.error("Failed to fetch ingredients:", err);
+      }
+    };
+
+    fetchIngredients();
+  }, []);
+
   return (
     <div>
       <FilterBar
@@ -95,9 +124,16 @@ const IngredientPage: React.FC = () => {
           Add Ingredient
         </button>
       </div>
+
       <div style={{ marginTop: "16px" }}>
-        <Table data={ingredients} onEdit={handleEdit} onDelete={handleDelete} />
+        <Table
+          data={ingredients}
+          columns={ingredientColumns}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
+
       <Popup open={showForm} onClose={closeForm}>
         <Form<Ingredient>
           fields={formFields}

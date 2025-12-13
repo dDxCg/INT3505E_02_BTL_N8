@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FilterBar } from "@/components/Admin/Filter/FilterBar";
 import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
@@ -7,11 +7,11 @@ import { Popup } from "@/components/Admin/Wrapper/Popup";
 
 interface EquipmentStatus {
   id: number;
-  name: string;
+  status: string;
 }
 
 const formFields: FormField<EquipmentStatus>[] = [
-  { key: "name", label: "Name", type: "text" },
+  { key: "status", label: "Status", type: "text" },
 ];
 
 const fields: FilterField[] = [
@@ -20,7 +20,9 @@ const fields: FilterField[] = [
 
 const EquipmentStatusPage: React.FC = () => {
   const [values, setValues] = useState<Record<string, string>>({});
-  const [equipmentStatuses, setEquipmentStatuses] = useState<any[]>([]);
+  const [equipmentStatuses, setEquipmentStatuses] = useState<EquipmentStatus[]>(
+    []
+  );
   const [showForm, setShowForm] = useState(false);
   const [editingStatus, setEditingStatus] = useState<EquipmentStatus | null>(
     null
@@ -30,42 +32,54 @@ const EquipmentStatusPage: React.FC = () => {
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleFetchOptions = (key: string, url: string) => {
-    console.log(`Fetch options for ${key} from ${url}`);
-    // implement fetching inside SelectFetchField
+  const handleFetchOptions = () => {
+    // No select-fetch fields here
   };
 
   const handleSearch = () => {
     console.log("Search values:", values);
-    // You can call your API here with the current filter values
+    // Later you'll plug API search here
   };
 
-  const handleEdit = (row: any) => {
-    console.log("Edit row:", row);
-    // Implement edit functionality here
+  const handleEdit = (row: EquipmentStatus) => {
+    setEditingStatus(row);
+    setShowForm(true);
   };
 
-  const handleDelete = (row: any) => {
+  const handleDelete = (row: EquipmentStatus) => {
     console.log("Delete row:", row);
-    // Implement delete functionality here
+    // Call delete API later
   };
 
   const handleFormSubmit = async (data: Partial<EquipmentStatus>) => {
     console.log("Form submitted with data:", data);
-    // Implement form submission logic here
+    // API submit logic later
   };
 
-  const closeForm = () => {
-    setShowForm(false);
-  };
+  const closeForm = () => setShowForm(false);
+
   const openAddForm = () => {
     setEditingStatus(null);
     setShowForm(true);
   };
-  const openEditForm = (status: EquipmentStatus) => {
-    setEditingStatus(status);
-    setShowForm(true);
-  };
+
+  // 🔥 Fetch all statuses once
+  useEffect(() => {
+    const fetchStatuses = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:8000/api/v1/resources/equipment-statuses"
+        );
+        const body = await res.json();
+        const items = Array.isArray(body) ? body : body.data ?? [];
+        setEquipmentStatuses(items);
+      } catch (err) {
+        console.error("Failed to fetch equipment statuses:", err);
+      }
+    };
+
+    fetchStatuses();
+  }, []);
 
   return (
     <div>
@@ -75,19 +89,26 @@ const EquipmentStatusPage: React.FC = () => {
         onChange={handleChange}
         onFetchOptions={handleFetchOptions}
       />
+
       <div style={{ marginTop: "16px" }}>
         <button onClick={handleSearch}>Search</button>
         <button onClick={openAddForm} style={{ marginLeft: "16px" }}>
           Add Equipment Status
         </button>
       </div>
+
       <div style={{ marginTop: "16px" }}>
         <Table
           data={equipmentStatuses}
+          columns={[
+            { key: "id", label: "ID" },
+            { key: "status", label: "Status" },
+          ]}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </div>
+
       <Popup open={showForm} onClose={closeForm}>
         <Form<EquipmentStatus>
           fields={formFields}

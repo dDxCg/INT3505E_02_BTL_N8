@@ -1,29 +1,5 @@
 from pydantic import BaseModel
-
-# --- Equipment Schemas ---
-class EquipmentCreate(BaseModel):
-    name: str
-    type_id: int
-    status_id: int
-
-class EquipmentUpdate(BaseModel):
-    name: str | None = None
-    type_id: int | None = None
-    status_id: int | None = None
-
-class EquipmentFilter(EquipmentUpdate):
-    pass
-
-class EquipmentRead(BaseModel):
-    id: int
-    name: str
-    type_id: int
-    status_id: int
-
-    model_config = {
-        "from_attributes": True
-    }
-
+from models import EquipmentStatus, EquipmentType
 
 # --- Equipment Type Schemas ---
 class EquipmentTypeCreate(BaseModel):
@@ -61,3 +37,33 @@ class EquipmentStatusRead(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+# --- Equipment Schemas ---
+class EquipmentCreate(BaseModel):
+    name: str
+    type_id: int
+    status_id: int
+
+class EquipmentUpdate(BaseModel):
+    name: str | None = None
+    type_id: int | None = None
+    status_id: int | None = None
+
+class EquipmentFilter(EquipmentUpdate):
+    pass
+
+class EquipmentReadBase(BaseModel):
+    id: int
+    name: str
+    type_id: int
+    status_id: int
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class EquipmentReadExtended(EquipmentReadBase):
+    type: EquipmentTypeRead
+    status: EquipmentStatusRead
+
+

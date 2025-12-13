@@ -1,10 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, delete, select, update
+from sqlalchemy.orm import selectinload
 from models import Equipment, EquipmentType, EquipmentStatus
 from schemas.resources import (
     EquipmentCreate,
     EquipmentFilter,
     EquipmentUpdate,
+    EquipmentReadBase,
+    EquipmentReadExtended,
     EquipmentTypeCreate,
     EquipmentTypeFilter,
     EquipmentTypeUpdate,
@@ -18,7 +21,7 @@ class EquipmentRepository:
         self.db = db
 
 
-    async def create_equipment(self, data: EquipmentCreate) -> Equipment:
+    async def create_equipment(self, data: EquipmentCreate) -> EquipmentReadBase:
         type_ = await self.db.execute(select(EquipmentType).where(EquipmentType.id == data.type_id))
         if (type_.scalar_one_or_none() is None):
             raise ValueError(f"EquipmentType with id {data.type_id} does not exist.")
@@ -32,8 +35,11 @@ class EquipmentRepository:
         return equip
 
 
-    async def get_all_equipment(self, filters: EquipmentFilter) -> list[Equipment]:
-        query = select(Equipment)
+    async def get_all_equipment(self, filters: EquipmentFilter) -> list[EquipmentReadExtended]:
+        query = select(Equipment).options(
+            selectinload(Equipment.status),
+            selectinload(Equipment.type)
+        )
         conditions = []
 
         if filters.name is not None:
@@ -47,24 +53,31 @@ class EquipmentRepository:
             query = query.where(and_(*conditions))
 
         result = await self.db.execute(query)
-        return result.scalars().all()
+        equip_list = result.scalars().all()
+        return [equip for equip in equip_list]
 
+    async def get_equipment_by_id(self, equipment_id: int) -> EquipmentReadExtended | None:
+        result = await self.db.execute(select(Equipment).options(
+            selectinload(Equipment.status),
+            selectinload(Equipment.type)
+            ).where(Equipment.id == equipment_id))
+        equip = result.scalar_one_or_none()
+        return equip
 
-    async def get_equipment_by_id(self, equipment_id: int) -> Equipment | None:
-        result = await self.db.execute(select(Equipment).where(Equipment.id == equipment_id))
-        return result.scalar_one_or_none()
-
-
-    async def delete_equipment(self, equipment_id: int) -> Equipment | None:
-        equip = await self.get_equipment_by_id(equipment_id)
+    async def delete_equipment(self, equipment_id: int) -> EquipmentReadBase | None:
+        get_equip = await self.db.execute(select(Equipment).where(Equipment.id == equipment_id))
+        equip = get_equip.scalar_one_or_none()
         if equip:
             await self.db.execute(delete(Equipment).where(Equipment.id == equipment_id))
             await self.db.commit()
-        return equip    
+        else:
+            return None
+        return equip   
     
 
-    async def update_equipment(self, equipment_id: int, data: EquipmentUpdate) -> Equipment | None:
-        equip = await self.get_equipment_by_id(equipment_id)
+    async def update_equipment(self, equipment_id: int, data: EquipmentUpdate) -> EquipmentReadBase | None:
+        get_equip = await self.db.execute(select(Equipment).where(Equipment.id == equipment_id))
+        equip = get_equip.scalar_one_or_none()
         if not equip:
             return None
 

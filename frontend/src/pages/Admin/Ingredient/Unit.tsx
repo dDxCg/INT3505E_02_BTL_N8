@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FilterBar } from "@/components/Admin/Filter/FilterBar";
 import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
@@ -64,6 +64,23 @@ const UnitPage: React.FC = () => {
     setShowForm(true);
   };
 
+  useEffect(() => {
+    const fetchTypes = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:8000/api/v1/resources/ingredient-units"
+        );
+        const body = await res.json();
+        const items = Array.isArray(body) ? body : body.data ?? [];
+        setUnits(items);
+      } catch (err) {
+        console.error("Failed to fetch equipment types:", err);
+      }
+    };
+
+    fetchTypes();
+  }, []);
+
   return (
     <div>
       <FilterBar
@@ -79,7 +96,15 @@ const UnitPage: React.FC = () => {
         </button>
       </div>
       <div style={{ marginTop: "16px" }}>
-        <Table data={units} onEdit={handleEdit} onDelete={handleDelete} />
+        <Table
+          data={units}
+          columns={[
+            { key: "id", label: "ID" },
+            { key: "name", label: "Name" },
+          ]}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
       <Popup open={showForm} onClose={closeForm}>
         <Form<Unit>
