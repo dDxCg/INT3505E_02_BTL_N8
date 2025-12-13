@@ -10,11 +10,11 @@ import GuestOrderPage from "./pages/guest";
 import MyOrderPage from "./pages/guest/my-order";
 
 // Staff Pages
-import StaffDashboard from './pages/StaffDashboard';
-import StaffTableDetail from './pages/StaffTableDetail';
+import StaffDashboard from './pages/staff/StaffDashboard';
+import StaffTableDetail from './pages/staff/StaffTableDetail';
 import POSPage from './pages/pos';
-import TablesPage from './pages/TablesPage';
-import OrdersPage from './pages/OrdersPage';
+import TablesPage from './pages/staff/TablesPage';
+import OrdersPage from './pages/staff/OrdersPage';
 
 // Staff Layout
 import StaffLayout from './components/staff/shared/StaffLayout';

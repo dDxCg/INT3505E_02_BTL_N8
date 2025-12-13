@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import BackButton from "../components/staff/shared/BackButton";
-import TableCard from "../components/staff/tables/TableCard";
-import { useTables } from "../hooks/useApi";
-import { getAvatarName } from "../utils/staffUtils";
+import BackButton from "../../components/staff/shared/BackButton";
+import TableCard from "../../components/staff/tables/TableCard";
+import { useTables } from "../../hooks/useApi";
+import { getAvatarName } from "../../utils/staffUtils";
 
 const TablesPage: React.FC = () => {
   const [status, setStatus] = useState("all");

@@ -14,8 +14,8 @@ import {
   getOrderItems,
   updateItemStatus,
   deleteOrderItem,
-} from '../services/api';
-import type { TableRead, OrderRead, OrderItemRead } from '../types/schema';
+} from '../../services/api';
+import type { TableRead, OrderRead, OrderItemRead } from '../../types/schema';
 import { toast } from 'react-toastify';
 
 export default function StaffTableDetail() {
