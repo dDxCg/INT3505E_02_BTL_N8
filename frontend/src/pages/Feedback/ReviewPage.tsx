@@ -7,7 +7,7 @@ export default function ReviewPage() {
   // Auto-redirect after 100 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate('/homepage');
+      navigate('/guest-display');
     }, 100000);
 
     return () => clearTimeout(timer);
