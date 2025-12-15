@@ -24,6 +24,7 @@ import AdminPage from "@/pages/Admin/Admin";
 
 // Review Page
 import ReviewPage from './pages/Feedback/ReviewPage';
+import GuestDisplayPage from './pages/Feedback/GuestDisplayPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +68,7 @@ function App() {
           <Route path="/payment-demo" element={<PaymentUserScreen />} />
 
           {/* Feedback Routes - NO LAYOUT */}
+          <Route path="/guest-display" element={<GuestDisplayPage />} />
           <Route path="/review" element={<ReviewPage />} />
           {/* Admin Routes - NO LAYOUT */}
           <Route path="/admin" element={<AdminPage />} />
