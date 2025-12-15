@@ -36,9 +36,27 @@ const EquipmentStatusPage: React.FC = () => {
     // No select-fetch fields here
   };
 
-  const handleSearch = () => {
-    console.log("Search values:", values);
-    // Later you'll plug API search here
+  const handleSearch = async () => {
+    const apiUrl = "http://localhost:8000/api";
+    try {
+      const params = new URLSearchParams();
+      if (values.name) {
+        params.append("status", values.name);
+      }
+      const query = params.toString();
+      const url = `${apiUrl}/v1/resources/equipment-statuses${
+        query ? "?" + query : ""
+      }`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = await res.json();
+      const items = Array.isArray(body) ? body : body.data ?? [];
+      setEquipmentStatuses(items);
+    } catch (err: any) {
+      console.error("Search failed:", err);
+      alert(`Error: ${err.message}`);
+    }
   };
 
   const handleEdit = (row: EquipmentStatus) => {
@@ -46,14 +64,56 @@ const EquipmentStatusPage: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (row: EquipmentStatus) => {
-    console.log("Delete row:", row);
-    // Call delete API later
+  const handleDelete = async (row: EquipmentStatus) => {
+    if (!window.confirm("Delete this status?")) return;
+
+    const apiUrl = "http://localhost:8000/api";
+    try {
+      const res = await fetch(
+        `${apiUrl}/v1/resources/equipment-statuses/${row.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Refetch after delete
+      await fetchStatuses();
+    } catch (err: any) {
+      console.error("Delete failed:", err);
+      alert(`Error: ${err.message}`);
+    }
   };
 
   const handleFormSubmit = async (data: Partial<EquipmentStatus>) => {
-    console.log("Form submitted with data:", data);
-    // API submit logic later
+    const apiUrl = "http://localhost:8000/api";
+    try {
+      if (editingStatus?.id) {
+        // PUT: Update
+        const res = await fetch(
+          `${apiUrl}/v1/resources/equipment-statuses/${editingStatus.id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      } else {
+        // POST: Create
+        const res = await fetch(`${apiUrl}/v1/resources/equipment-statuses`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      }
+      closeForm();
+      // Refetch after add or update
+      await fetchStatuses();
+    } catch (err: any) {
+      console.error("Form submission failed:", err);
+      alert(`Error: ${err.message}`);
+    }
   };
 
   const closeForm = () => setShowForm(false);
@@ -63,21 +123,20 @@ const EquipmentStatusPage: React.FC = () => {
     setShowForm(true);
   };
 
-  // 🔥 Fetch all statuses once
-  useEffect(() => {
-    const fetchStatuses = async () => {
-      try {
-        const res = await fetch(
-          "http://localhost:8000/api/v1/resources/equipment-statuses"
-        );
-        const body = await res.json();
-        const items = Array.isArray(body) ? body : body.data ?? [];
-        setEquipmentStatuses(items);
-      } catch (err) {
-        console.error("Failed to fetch equipment statuses:", err);
-      }
-    };
+  const fetchStatuses = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:8000/api/v1/resources/equipment-statuses"
+      );
+      const body = await res.json();
+      const items = Array.isArray(body) ? body : body.data ?? [];
+      setEquipmentStatuses(items);
+    } catch (err) {
+      console.error("Failed to fetch equipment statuses:", err);
+    }
+  };
 
+  useEffect(() => {
     fetchStatuses();
   }, []);
 

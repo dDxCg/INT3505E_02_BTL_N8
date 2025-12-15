@@ -4,8 +4,10 @@ import styles from "./Form.module.css";
 export interface FormField<T = any> {
   key: keyof T;
   label: string;
-  type?: "text" | "number" | "select" | "textarea";
+  type?: "text" | "number" | "select" | "select-fetch" | "textarea";
   options?: { value: string | number; label: string }[]; // for select
+  fetchUrl?: string; // for select-fetch
+  dataPath?: string; // JSON path to options array in response (e.g., "data" or "items")
 }
 
 export interface FormProps<T> {
@@ -29,13 +31,65 @@ export function Form<T>({
   const [values, setValues] = useState<Partial<T>>(initialData);
   const [isEditing, setIsEditing] = useState(!!Object.keys(initialData).length);
   const [loading, setLoading] = useState(false);
+  const [fetchedOptions, setFetchedOptions] = useState<
+    Record<string, { value: string | number; label: string }[]>
+  >({});
+  const [selectedOptionsData, setSelectedOptionsData] = useState<
+    Record<string, { id: string | number; name: string }>
+  >({});
 
   useEffect(() => {
     setValues(initialData);
     setIsEditing(!!Object.keys(initialData).length);
   }, [initialData]);
 
+  // Fetch options for all select-fetch fields on mount
+  useEffect(() => {
+    const fetchAllOptions = async () => {
+      const fetchPromises: { key: string; promise: Promise<any> }[] = [];
+
+      fields.forEach((f) => {
+        if (f.type === "select-fetch" && f.fetchUrl) {
+          fetchPromises.push({
+            key: String(f.key),
+            promise: fetch(f.fetchUrl).then((res) => res.json()),
+          });
+        }
+      });
+
+      if (fetchPromises.length === 0) return;
+
+      try {
+        const results = await Promise.all(fetchPromises.map((p) => p.promise));
+        const optionsMap: typeof fetchedOptions = {};
+
+        fetchPromises.forEach((p, idx) => {
+          const field = fields.find((f) => String(f.key) === p.key);
+          const dataPath = field?.dataPath || "data";
+          const data = results[idx];
+          const items =
+            dataPath.split(".").reduce((obj, key) => obj?.[key], data) || data;
+
+          // Normalize to array of {value, label}
+          if (Array.isArray(items)) {
+            optionsMap[p.key] = items.map((item: any) => ({
+              value: item.id ?? item.value,
+              label: item.name ?? item.status ?? item.label ?? String(item),
+            }));
+          }
+        });
+
+        setFetchedOptions(optionsMap);
+      } catch (err) {
+        console.error("Error fetching form options:", err);
+      }
+    };
+
+    fetchAllOptions();
+  }, [fields]);
+
   const handleChange = (key: keyof T, value: any) => {
+    // For all fields, store only the value (ID for select-fetch, display value for others)
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -50,6 +104,7 @@ export function Form<T>({
       }
       onClose?.();
       setValues({});
+      setSelectedOptionsData({});
       setIsEditing(false);
     } catch (err) {
       console.error(err);
@@ -71,6 +126,19 @@ export function Form<T>({
             >
               <option value="">—</option>
               {f.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          ) : f.type === "select-fetch" ? (
+            <select
+              aria-label={String(f.key)}
+              value={getSafeValue(values[f.key])}
+              onChange={(e) => handleChange(f.key, e.target.value)}
+            >
+              <option value="">—</option>
+              {(fetchedOptions[String(f.key)] || []).map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>

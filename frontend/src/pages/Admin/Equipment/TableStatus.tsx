@@ -5,69 +5,25 @@ import { Table } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
 
-interface Equipment {
+interface TableStatus {
   id: number;
-  name: string;
-  status_id: number;
-  type_id: number;
-  status: {
-    id: number;
-    status: string;
-  };
-  type: {
-    id: number;
-    name: string;
-  };
+  status: string;
 }
 
-const equipmentColumns = [
-  { key: "id", label: "ID" },
-  { key: "name", label: "Name" },
-  { key: "status.status", label: "Status" },
-  { key: "type.name", label: "Type" },
-];
-
-const formFields: FormField<Equipment>[] = [
-  { key: "name", label: "Name", type: "text" },
-  {
-    key: "status_id",
-    label: "Status",
-    type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/equipment-statuses",
-  },
-  {
-    key: "type_id",
-    label: "Type",
-    type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/equipment-types",
-  },
+const formFields: FormField<TableStatus>[] = [
+  { key: "status", label: "Status", type: "text" },
 ];
 
 const fields: FilterField[] = [
-  { key: "name", label: "Name", type: "text", col: 2 },
-  {
-    key: "status",
-    label: "Status",
-    type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/equipment-statuses",
-  },
-  {
-    key: "type",
-    label: "Type",
-    type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/equipment-types",
-  },
+  { key: "status", label: "Status", type: "text", col: 2 },
 ];
 
-const EquipmentPage: React.FC = () => {
+const TableStatusPage: React.FC = () => {
   const [values, setValues] = useState<Record<string, string>>({});
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [tableStatuses, setTableStatuses] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(
-    null
-  );
+  const [editingTableStatus, setEditingTableStatus] =
+    useState<TableStatus | null>(null);
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -77,21 +33,18 @@ const EquipmentPage: React.FC = () => {
     try {
       const res = await fetch(url);
       const body = await res.json();
-
       const items = Array.isArray(body) ? body : body.data ?? [];
 
       const options = items.map((item: any) => ({
-        label: item.name ?? item.status ?? String(item),
+        label: item.status ?? String(item),
         value: String(item.id),
       }));
 
-      // Patch into fields so FilterBar re-renders
       const field = fields.find((f) => f.key === key);
       if (field) {
         field.options = options;
       }
 
-      // Force a state update so React re-renders
       setValues((prev) => ({ ...prev }));
     } catch (err) {
       console.error("fetch options failed:", err);
@@ -101,72 +54,50 @@ const EquipmentPage: React.FC = () => {
   const handleSearch = async () => {
     const apiUrl = "http://localhost:8000/api";
     try {
-      setLoading(true);
-
-      // Build query params from filter values
       const params = new URLSearchParams();
-
-      if (values.name) {
-        params.append("name", values.name);
-      }
-      if (values.status) {
-        // status is the ID from select-fetch
-        params.append("status_id", values.status);
-      }
-      if (values.type) {
-        // type is the ID from select-fetch
-        params.append("type_id", values.type);
-      }
+      if (values.status) params.append("status", values.status);
 
       const query = params.toString();
-      const url = `${apiUrl}/v1/resources/equipments${
-        query ? "?" + query : ""
-      }`;
+      const url = `${apiUrl}/v1/tables/statuses/${query ? "?" + query : ""}`;
 
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
       const body = await res.json();
       const items = Array.isArray(body) ? body : body.data ?? [];
-      setEquipments(items);
-      setError(null);
+      setTableStatuses(items);
     } catch (err: any) {
       console.error("Search failed:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      alert(`Error: ${err.message}`);
     }
   };
 
-  const handleEdit = (row: any) => {
-    console.log("Edit row:", row);
-    // Implement edit functionality here
+  const handleEdit = async (row: any) => {
+    openEditForm(row);
   };
 
   const handleDelete = async (row: any) => {
-    if (!window.confirm("Delete this equipment?")) return;
+    if (!window.confirm("Delete this table status?")) return;
 
     const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/resources/equipments/${row.id}`, {
+      const res = await fetch(`${apiUrl}/v1/tables/statuses/${row.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      // Refetch after delete
-      await fetchEquipments();
+      await fetchTableStatuses();
     } catch (err: any) {
       console.error("Delete failed:", err);
       alert(`Error: ${err.message}`);
     }
   };
 
-  const handleFormSubmit = async (data: Partial<Equipment>) => {
+  const handleFormSubmit = async (data: Partial<TableStatus>) => {
     const apiUrl = "http://localhost:8000/api";
     try {
-      if (editingEquipment?.id) {
-        // PUT: Update existing equipment
+      if (editingTableStatus?.id) {
+        // PUT: Update
         const res = await fetch(
-          `${apiUrl}/v1/resources/equipments/${editingEquipment.id}`,
+          `${apiUrl}/v1/tables/statuses/${editingTableStatus.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -175,8 +106,8 @@ const EquipmentPage: React.FC = () => {
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       } else {
-        // POST: Create new equipment
-        const res = await fetch(`${apiUrl}/v1/resources/equipments`, {
+        // POST: Create
+        const res = await fetch(`${apiUrl}/v1/tables/statuses/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -184,39 +115,43 @@ const EquipmentPage: React.FC = () => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       }
       closeForm();
-      // Refetch the full list after add or update
-      await fetchEquipments();
+      await fetchTableStatuses();
     } catch (err: any) {
       console.error("Form submission failed:", err);
       alert(`Error: ${err.message}`);
     }
   };
 
-  const closeForm = () => setShowForm(false);
-  const openAddForm = () => {
-    setEditingEquipment(null);
-    setShowForm(true);
+  const closeForm = () => {
+    setShowForm(false);
   };
-  const openEditForm = (equipment: Equipment) => {
-    setEditingEquipment(equipment);
+
+  const openAddForm = () => {
+    setEditingTableStatus(null);
     setShowForm(true);
   };
 
-  const fetchEquipments = async () => {
+  const openEditForm = (tableStatus: TableStatus) => {
+    setEditingTableStatus(tableStatus);
+    setShowForm(true);
+  };
+
+  const fetchTableStatuses = async () => {
+    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(
-        "http://localhost:8000/api/v1/resources/equipments"
-      );
+      const res = await fetch(`${apiUrl}/v1/tables/statuses/`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = await res.json();
       const items = Array.isArray(body) ? body : body.data ?? [];
-      setEquipments(items);
-    } catch (err) {
-      console.error("fetch all equipments fail:", err);
+      setTableStatuses(items);
+    } catch (err: any) {
+      console.error("Failed to fetch table statuses:", err);
+      alert(`Error loading table statuses: ${err.message}`);
     }
   };
 
   useEffect(() => {
-    fetchEquipments();
+    fetchTableStatuses();
   }, []);
 
   return (
@@ -230,21 +165,24 @@ const EquipmentPage: React.FC = () => {
       <div style={{ marginTop: "16px" }}>
         <button onClick={handleSearch}>Search</button>
         <button onClick={openAddForm} style={{ marginLeft: "16px" }}>
-          Add Equipment
+          Add Table Status
         </button>
       </div>
       <div style={{ marginTop: "16px" }}>
         <Table
-          data={equipments}
-          columns={equipmentColumns}
-          onEdit={openEditForm}
+          data={tableStatuses}
+          columns={[
+            { key: "id", label: "ID" },
+            { key: "status", label: "Status" },
+          ]}
+          onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </div>
       <Popup open={showForm} onClose={closeForm}>
-        <Form<Equipment>
+        <Form<TableStatus>
           fields={formFields}
-          initialData={editingEquipment || {}}
+          initialData={editingTableStatus || {}}
           onSubmitAdd={handleFormSubmit}
           onSubmitEdit={handleFormSubmit}
           onClose={closeForm}
@@ -254,4 +192,4 @@ const EquipmentPage: React.FC = () => {
   );
 };
 
-export default EquipmentPage;
+export default TableStatusPage;

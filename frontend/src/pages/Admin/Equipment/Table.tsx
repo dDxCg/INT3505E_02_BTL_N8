@@ -1,61 +1,45 @@
 import React, { useEffect, useState } from "react";
 import { FilterBar } from "@/components/Admin/Filter/FilterBar";
 import { FilterField } from "@/components/Admin/Filter/types";
-import { Table } from "@/components/Admin/Table/Table";
+import { Table as TableComponent } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
 
-interface Ingredient {
+interface Table {
   id: number;
-  name: string;
-  quantity: number;
-  threshold: number;
-  unit_id: number;
-  unit: {
-    id: number;
-    name: string;
-  };
+  number: string;
+  seats: number;
+  status_id: number;
 }
 
-const ingredientColumns = [
-  { key: "id", label: "ID" },
-  { key: "name", label: "Name" },
-  { key: "unit.name", label: "Unit" },
-  { key: "quantity", label: "Quantity" },
-  { key: "threshold", label: "Threshold" },
-];
-
-const formFields: FormField<Ingredient>[] = [
-  { key: "name", label: "Name", type: "text" },
-  { key: "quantity", label: "Quantity", type: "number" },
-  { key: "threshold", label: "Threshold", type: "number" },
+const formFields: FormField<Table>[] = [
+  { key: "number", label: "Table Number", type: "text" },
+  { key: "seats", label: "Seats", type: "number" },
   {
-    key: "unit_id",
-    label: "Unit",
+    key: "status_id",
+    label: "Status",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/ingredient-units",
+    fetchUrl: "http://localhost:8000/api/v1/tables/statuses/",
   },
 ];
 
 const fields: FilterField[] = [
-  { key: "name", label: "Name", type: "text", col: 2 },
-  { key: "quantity", label: "Quantity", type: "text" },
-  { key: "threshold", label: "Threshold", type: "text" },
+  { key: "number", label: "Table Number", type: "text", col: 2 },
+  { key: "seats", label: "Seats", type: "text", col: 2 },
   {
-    key: "unit",
-    label: "Unit",
+    key: "status_id",
+    label: "Status",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/ingredient-units",
+    fetchUrl: "http://localhost:8000/api/v1/tables/statuses/",
+    col: 2,
   },
 ];
 
-const IngredientPage: React.FC = () => {
+const TablePage: React.FC = () => {
   const [values, setValues] = useState<Record<string, string>>({});
-  const [ingredients, setIngredients] = useState<any[]>([]);
+  const [tables, setTables] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(
-    null
-  );
+  const [editingTable, setEditingTable] = useState<Table | null>(null);
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -68,7 +52,7 @@ const IngredientPage: React.FC = () => {
       const items = Array.isArray(body) ? body : body.data ?? [];
 
       const options = items.map((item: any) => ({
-        label: item.name ?? item.status ?? String(item),
+        label: item.status ?? String(item),
         value: String(item.id),
       }));
 
@@ -87,21 +71,18 @@ const IngredientPage: React.FC = () => {
     const apiUrl = "http://localhost:8000/api";
     try {
       const params = new URLSearchParams();
-      if (values.name) params.append("name", values.name);
-      if (values.quantity) params.append("quantity", values.quantity);
-      if (values.threshold) params.append("threshold", values.threshold);
-      if (values.unit) params.append("unit_id", values.unit);
+      if (values.number) params.append("number", values.number);
+      if (values.seats) params.append("seats", values.seats);
+      if (values.status_id) params.append("status_id", values.status_id);
 
       const query = params.toString();
-      const url = `${apiUrl}/v1/resources/ingredients${
-        query ? "?" + query : ""
-      }`;
+      const url = `${apiUrl}/v1/tables${query ? "?" + query : ""}`;
 
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = await res.json();
       const items = Array.isArray(body) ? body : body.data ?? [];
-      setIngredients(items);
+      setTables(items);
     } catch (err: any) {
       console.error("Search failed:", err);
       alert(`Error: ${err.message}`);
@@ -113,46 +94,52 @@ const IngredientPage: React.FC = () => {
   };
 
   const handleDelete = async (row: any) => {
-    if (!window.confirm("Delete this ingredient?")) return;
+    if (!window.confirm("Delete this table?")) return;
 
     const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/resources/ingredients/${row.id}`, {
+      const res = await fetch(`${apiUrl}/v1/tables/${row.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      await fetchIngredients();
+      await fetchTables();
     } catch (err: any) {
       console.error("Delete failed:", err);
       alert(`Error: ${err.message}`);
     }
   };
 
-  const handleFormSubmit = async (data: Partial<Ingredient>) => {
+  const handleFormSubmit = async (data: Partial<Table>) => {
     const apiUrl = "http://localhost:8000/api";
     try {
-      if (editingIngredient?.id) {
+      // Convert status_id to number
+      const payload = {
+        ...data,
+        seats: data.seats ? parseInt(String(data.seats)) : undefined,
+        status_id: data.status_id
+          ? parseInt(String(data.status_id))
+          : undefined,
+      };
+
+      if (editingTable?.id) {
         // PUT: Update
-        const res = await fetch(
-          `${apiUrl}/v1/resources/ingredients/${editingIngredient.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          }
-        );
+        const res = await fetch(`${apiUrl}/v1/tables/${editingTable.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       } else {
         // POST: Create
-        const res = await fetch(`${apiUrl}/v1/resources/ingredients`, {
+        const res = await fetch(`${apiUrl}/v1/tables`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       }
       closeForm();
-      await fetchIngredients();
+      await fetchTables();
     } catch (err: any) {
       console.error("Form submission failed:", err);
       alert(`Error: ${err.message}`);
@@ -164,29 +151,31 @@ const IngredientPage: React.FC = () => {
   };
 
   const openAddForm = () => {
-    setEditingIngredient(null);
-    setShowForm(true);
-  };
-  const openEditForm = (ingredient: Ingredient) => {
-    setEditingIngredient(ingredient);
+    setEditingTable(null);
     setShowForm(true);
   };
 
-  const fetchIngredients = async () => {
+  const openEditForm = (table: Table) => {
+    setEditingTable(table);
+    setShowForm(true);
+  };
+
+  const fetchTables = async () => {
+    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(
-        "http://localhost:8000/api/v1/resources/ingredients"
-      );
+      const res = await fetch(`${apiUrl}/v1/tables`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = await res.json();
       const items = Array.isArray(body) ? body : body.data ?? [];
-      setIngredients(items);
-    } catch (err) {
-      console.error("Failed to fetch ingredients:", err);
+      setTables(items);
+    } catch (err: any) {
+      console.error("Failed to fetch tables:", err);
+      alert(`Error loading tables: ${err.message}`);
     }
   };
 
   useEffect(() => {
-    fetchIngredients();
+    fetchTables();
   }, []);
 
   return (
@@ -200,23 +189,26 @@ const IngredientPage: React.FC = () => {
       <div style={{ marginTop: "16px" }}>
         <button onClick={handleSearch}>Search</button>
         <button onClick={openAddForm} style={{ marginLeft: "16px" }}>
-          Add Ingredient
+          Add Table
         </button>
       </div>
-
       <div style={{ marginTop: "16px" }}>
-        <Table
-          data={ingredients}
-          columns={ingredientColumns}
+        <TableComponent
+          data={tables}
+          columns={[
+            { key: "id", label: "ID" },
+            { key: "number", label: "Table Number" },
+            { key: "seats", label: "Seats" },
+            { key: "status_id", label: "Status ID" },
+          ]}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </div>
-
       <Popup open={showForm} onClose={closeForm}>
-        <Form<Ingredient>
+        <Form<Table>
           fields={formFields}
-          initialData={editingIngredient || {}}
+          initialData={editingTable || {}}
           onSubmitAdd={handleFormSubmit}
           onSubmitEdit={handleFormSubmit}
           onClose={closeForm}
@@ -226,4 +218,4 @@ const IngredientPage: React.FC = () => {
   );
 };
 
-export default IngredientPage;
+export default TablePage;
