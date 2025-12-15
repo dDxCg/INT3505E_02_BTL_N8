@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { BsCashCoin } from "react-icons/bs";
 import { GrInProgress } from "react-icons/gr";
-import Greetings from "../components/staff/home/Greetings";
-import MiniCard from "../components/staff/home/MiniCard";
-import RecentOrders from "../components/staff/home/RecentOrders";
-import PopularDishes from "../components/staff/home/PopularDishes";
+import Greetings from "../../components/staff/home/Greetings";
+import MiniCard from "../../components/staff/home/MiniCard";
+import RecentOrders from "../../components/staff/home/RecentOrders";
+import PopularDishes from "../../components/staff/home/PopularDishes";
 
 export default function StaffDashboard() {
   useEffect(() => {

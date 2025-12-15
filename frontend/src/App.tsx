@@ -10,19 +10,21 @@ import GuestOrderPage from "./pages/guest";
 import MyOrderPage from "./pages/guest/my-order";
 
 // Staff Pages
-import StaffDashboard from './pages/StaffDashboard';
-import StaffTableDetail from './pages/StaffTableDetail';
+import StaffDashboard from './pages/staff/StaffDashboard';
+import StaffTableDetail from './pages/staff/StaffTableDetail';
 import POSPage from './pages/pos';
-import TablesPage from './pages/TablesPage';
-import OrdersPage from './pages/OrdersPage';
+import TablesPage from './pages/staff/TablesPage';
+import OrdersPage from './pages/staff/OrdersPage';
 
 // Staff Layout
 import StaffLayout from './components/staff/shared/StaffLayout';
-import StaffDashboard from "./pages/StaffDashboard";
-import StaffTableDetail from "./pages/StaffTableDetail";
-import POSPage from "./pages/pos";
 
+// Admin Page
 import AdminPage from "@/pages/Admin/Admin";
+
+// Review Page
+import ReviewPage from './pages/Feedback/ReviewPage';
+import GuestDisplayPage from './pages/Feedback/GuestDisplayPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +67,10 @@ function App() {
           <Route path="/payment/vnpay-demo" element={<PaymentVNPayScreen />} />
           <Route path="/payment-demo" element={<PaymentUserScreen />} />
 
+          {/* Feedback Routes - NO LAYOUT */}
+          <Route path="/guest-display" element={<GuestDisplayPage />} />
+          <Route path="/review" element={<ReviewPage />} />
+          {/* Admin Routes - NO LAYOUT */}
           <Route path="/admin" element={<AdminPage />} />
           {/* 404 */}
           <Route path="*" element={<Navigate to="/staff" replace />} />

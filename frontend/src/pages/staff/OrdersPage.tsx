@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import BackButton from "../components/staff/shared/BackButton";
-import OrderCard from "../components/staff/orders/OrderCard";
-import OrderDetailModal from "../components/staff/orders/OrderDetailModal";
-import { useOrders, useOrderItems, useOrderTotal } from "../hooks/useApi";
-import type { Order } from "../types/staff.types";
-import type { OrderRead } from "../types";
+import BackButton from "../../components/staff/shared/BackButton";
+import OrderCard from "../../components/staff/orders/OrderCard";
+import OrderDetailModal from "../../components/staff/orders/OrderDetailModal";
+import { useOrders, useOrderItems, useOrderTotal } from "../../hooks/useApi";
+import type { Order } from "../../types/staff.types";
+import type { OrderRead } from "../../types";
 
 // Wrapper component that fetches total and items count for a single order
 const OrderCardWithData: React.FC<{ orderData: OrderRead; onOrderClick: (order: Order) => void }> = ({ orderData, onOrderClick }) => {
