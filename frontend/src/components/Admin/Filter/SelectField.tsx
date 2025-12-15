@@ -16,10 +16,10 @@ export const SelectFetchField: React.FC<Props> = ({
   onChange,
 }) => {
   useEffect(() => {
-    if (!field.options && field.fetchUrl) {
+    if (field.fetchUrl && (!field.options || field.options.length === 0)) {
       onFetchOptions(field.key, field.fetchUrl);
     }
-  }, []);
+  }, [field.key, field.fetchUrl]);
 
   return (
     <select
