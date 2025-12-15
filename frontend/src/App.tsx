@@ -19,8 +19,11 @@ import OrdersPage from './pages/staff/OrdersPage';
 // Staff Layout
 import StaffLayout from './components/staff/shared/StaffLayout';
 
-
+// Admin Page
 import AdminPage from "@/pages/Admin/Admin";
+
+// Review Page
+import ReviewPage from './pages/Feedback/ReviewPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +66,9 @@ function App() {
           <Route path="/payment/vnpay-demo" element={<PaymentVNPayScreen />} />
           <Route path="/payment-demo" element={<PaymentUserScreen />} />
 
+          {/* Feedback Routes - NO LAYOUT */}
+          <Route path="/review" element={<ReviewPage />} />
+          {/* Admin Routes - NO LAYOUT */}
           <Route path="/admin" element={<AdminPage />} />
           {/* 404 */}
           <Route path="*" element={<Navigate to="/staff" replace />} />
