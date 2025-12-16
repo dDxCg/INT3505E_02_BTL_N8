@@ -8,7 +8,7 @@ from schemas.resources import IngredientHistoryCreate, IngredientHistoryUpdate, 
 router = APIRouter(prefix="/resources/ingredient-histories", tags=["Ingredient Histories"])
 
 
-@router.post("/", response_model=IngredientHistoryRead)
+@router.post("", response_model=IngredientHistoryRead)
 async def create_ingredient_history(
     ingredient_history: IngredientHistoryCreate,
     db: AsyncSession = Depends(get_db),
@@ -17,7 +17,7 @@ async def create_ingredient_history(
     return await ingredient_history_repository.create_ingredient_history(ingredient_history)
 
 
-@router.get("/", response_model=list[IngredientHistoryRead])
+@router.get("", response_model=list[IngredientHistoryRead])
 async def get_ingredient_histories(
     filter: IngredientHistoryFilter = Depends(),
     db: AsyncSession = Depends(get_db),

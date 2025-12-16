@@ -7,7 +7,7 @@ from schemas.resources import IngredientUnitCreate, IngredientUnitUpdate, Ingred
 
 router = APIRouter(prefix="/resources/ingredient-units", tags=["Ingredient Units"])
 
-@router.post("/", response_model=IngredientUnitRead)
+@router.post("", response_model=IngredientUnitRead)
 async def create_ingredient_unit(
     ingredient_unit: IngredientUnitCreate,
     db: AsyncSession = Depends(get_db),
@@ -16,7 +16,7 @@ async def create_ingredient_unit(
     return await ingredient_unit_repository.create_ingredient_unit(ingredient_unit)
 
 
-@router.get("/", response_model=list[IngredientUnitRead])
+@router.get("", response_model=list[IngredientUnitRead])
 async def get_ingredient_units(
     filter: IngredientUnitFilter = Depends(),
     db: AsyncSession = Depends(get_db),

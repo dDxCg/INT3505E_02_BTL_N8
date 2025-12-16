@@ -8,7 +8,7 @@ from schemas.resources import IngredientCreate, IngredientUpdate, IngredientRead
 router = APIRouter(prefix="/resources/ingredients", tags=["Ingredients"])
 
 
-@router.post("/", response_model=IngredientReadBase)
+@router.post("", response_model=IngredientReadBase)
 async def create_ingredient(
     ingredient: IngredientCreate,
     db: AsyncSession = Depends(get_db),
@@ -17,7 +17,7 @@ async def create_ingredient(
     return await ingredient_repository.create_ingredient(ingredient)
 
 
-@router.get("/", response_model=list[IngredientReadExtended])
+@router.get("", response_model=list[IngredientReadExtended])
 async def get_ingredients(
     filter: IngredientFilter = Depends(),
     db: AsyncSession = Depends(get_db),

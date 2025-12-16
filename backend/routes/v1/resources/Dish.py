@@ -7,7 +7,7 @@ from schemas.resources import DishCreate, DishUpdate, DishRead, DishFilter
 
 router = APIRouter(prefix="/resources/dishes", tags=["Dishes"])
 
-@router.get("/", response_model=list[DishRead])
+@router.get("", response_model=list[DishRead])
 async def get_dishes(
     filter: DishFilter = Depends(),
     db: AsyncSession = Depends(get_db),
@@ -15,7 +15,7 @@ async def get_dishes(
     dish_repository = DishRepository(db)
     return await dish_repository.get_all_dishes(filter)
 
-@router.post("/", response_model=DishRead)
+@router.post("", response_model=DishRead)
 async def create_dish(
     dish: DishCreate,
     db: AsyncSession = Depends(get_db),

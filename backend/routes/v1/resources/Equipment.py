@@ -8,7 +8,7 @@ from schemas.resources import EquipmentCreate, EquipmentUpdate, EquipmentFilter,
 router = APIRouter(prefix="/resources/equipments", tags=["Equipments"])
 
 
-@router.post("/", response_model=EquipmentReadBase)
+@router.post("", response_model=EquipmentReadBase)
 async def create_equipment(
     equipment: EquipmentCreate,
     db: AsyncSession = Depends(get_db),
@@ -17,7 +17,7 @@ async def create_equipment(
     return await equip_repository.create_equipment(equipment)
 
 
-@router.get("/", response_model=list[EquipmentReadExtended])
+@router.get("", response_model=list[EquipmentReadExtended])
 async def get_equipments(
     filter: EquipmentFilter = Depends(),
     db: AsyncSession = Depends(get_db),

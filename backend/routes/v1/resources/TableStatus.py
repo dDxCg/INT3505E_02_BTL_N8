@@ -5,9 +5,9 @@ from configs.postgre import get_db
 from repository.resources import TableStatusRepository
 from schemas.resources import (TableStatusRead, TableStatusCreate, TableStatusFilter, TableStatusUpdate)
 
-router = APIRouter(prefix="/tables/statuses", tags=["Table Statuses"])
+router = APIRouter(prefix="/tables-statuses", tags=["Table Statuses"])
 
-@router.post("/", response_model=TableStatusRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TableStatusRead, status_code=status.HTTP_201_CREATED)
 async def create_table_status(
     payload: TableStatusCreate,
     db: AsyncSession = Depends(get_db)
@@ -19,14 +19,15 @@ async def create_table_status(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/", response_model=list[TableStatusRead])
+@router.get("", response_model=list[TableStatusRead])
 async def get_table_statuses(
     filters: TableStatusFilter = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
     repos = TableStatusRepository(db)
-    return await repos.get_all_table_statuses(filters)  
-
+    statuses = await repos.get_all_table_statuses(filters) 
+    print(type(statuses[0]), statuses[0].__dict__) 
+    return statuses
 
 @router.get("/{status_id}", response_model=TableStatusRead)
 async def get_table_status(

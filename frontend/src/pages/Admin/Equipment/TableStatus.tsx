@@ -58,7 +58,7 @@ const TableStatusPage: React.FC = () => {
       if (values.status) params.append("status", values.status);
 
       const query = params.toString();
-      const url = `${apiUrl}/v1/tables/statuses/${query ? "?" + query : ""}`;
+      const url = `${apiUrl}/v1/tables-statuses${query ? "?" + query : ""}`;
 
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -80,7 +80,7 @@ const TableStatusPage: React.FC = () => {
 
     const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/tables/statuses/${row.id}`, {
+      const res = await fetch(`${apiUrl}/v1/tables-statuses/${row.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -97,7 +97,7 @@ const TableStatusPage: React.FC = () => {
       if (editingTableStatus?.id) {
         // PUT: Update
         const res = await fetch(
-          `${apiUrl}/v1/tables/statuses/${editingTableStatus.id}`,
+          `${apiUrl}/v1/tables-statuses/${editingTableStatus.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -107,7 +107,7 @@ const TableStatusPage: React.FC = () => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       } else {
         // POST: Create
-        const res = await fetch(`${apiUrl}/v1/tables/statuses/`, {
+        const res = await fetch(`${apiUrl}/v1/tables-statuses`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -139,7 +139,7 @@ const TableStatusPage: React.FC = () => {
   const fetchTableStatuses = async () => {
     const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/tables/statuses/`);
+      const res = await fetch(`${apiUrl}/v1/tables-statuses`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = await res.json();
       const items = Array.isArray(body) ? body : body.data ?? [];
