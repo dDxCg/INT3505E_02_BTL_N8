@@ -5,7 +5,7 @@ from configs.postgre import get_db
 from repository.resources import TableStatusRepository
 from schemas.resources import (TableStatusRead, TableStatusCreate, TableStatusFilter, TableStatusUpdate)
 
-router = APIRouter(prefix="/tables-statuses", tags=["Table Statuses"])
+router = APIRouter(prefix="/tables-statuses", tags=["Tables"])
 
 @router.post("", response_model=TableStatusRead, status_code=status.HTTP_201_CREATED)
 async def create_table_status(

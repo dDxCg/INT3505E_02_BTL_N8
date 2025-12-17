@@ -5,7 +5,7 @@ from configs.postgre import get_db
 from repository.resources import IngredientUnitRepository
 from schemas.resources import IngredientUnitCreate, IngredientUnitUpdate, IngredientUnitRead, IngredientUnitFilter
 
-router = APIRouter(prefix="/resources/ingredient-units", tags=["Ingredient Units"])
+router = APIRouter(prefix="/resources/ingredient-units", tags=["Ingredients"])
 
 @router.post("", response_model=IngredientUnitRead)
 async def create_ingredient_unit(

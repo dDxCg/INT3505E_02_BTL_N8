@@ -58,7 +58,7 @@ const TableStatusPage: React.FC = () => {
       if (values.status) params.append("status", values.status);
 
       const query = params.toString();
-      const url = `${apiUrl}/v1/tables-statuses${query ? "?" + query : ""}`;
+      const url = `${apiUrl}/v1/tables/statuses${query ? "?" + query : ""}`;
 
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -80,7 +80,7 @@ const TableStatusPage: React.FC = () => {
 
     const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/tables-statuses/${row.id}`, {
+      const res = await fetch(`${apiUrl}/v1/tables/statuses/${row.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

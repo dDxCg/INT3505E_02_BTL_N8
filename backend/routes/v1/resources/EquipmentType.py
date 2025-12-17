@@ -5,7 +5,7 @@ from configs.postgre import get_db
 from repository.resources import EquipmentTypeRepository
 from schemas.resources import EquipmentTypeCreate, EquipmentTypeUpdate, EquipmentTypeRead, EquipmentTypeFilter
 
-router = APIRouter(prefix="/resources/equipment-types", tags=["Equipment Types"])
+router = APIRouter(prefix="/resources/equipment-types", tags=["Equipments"])
 
 @router.post("", response_model=EquipmentTypeRead)
 async def create_equipment_type(
