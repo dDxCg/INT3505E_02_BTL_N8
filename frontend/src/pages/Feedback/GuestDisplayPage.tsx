@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import logoImage from '../assets/images/logo.png';
-import butterChicken from '../assets/images/butter-chicken-4.jpg';
-import biryani from '../assets/images/hyderabadibiryani.jpg';
-import paneerTika from '../assets/images/paneer-tika.webp';
-import masalaDosa from '../assets/images/masala-dosa.jpg';
-import roganJosh from '../assets/images/rogan-josh.jpg';
-import saagPaneer from '../assets/images/Saag-Paneer-1.jpg';
+import logoImage from '../../assets/images/logo.png';
+import butterChicken from '../../assets/images/butter-chicken-4.jpg';
+import biryani from '../../assets/images/hyderabadibiryani.jpg';
+import paneerTika from '../../assets/images/paneer-tika.webp';
+import masalaDosa from '../../assets/images/masala-dosa.jpg';
+import roganJosh from '../../assets/images/rogan-josh.jpg';
+import saagPaneer from '../../assets/images/Saag-Paneer-1.jpg';
 
 export default function GuestDisplayPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
