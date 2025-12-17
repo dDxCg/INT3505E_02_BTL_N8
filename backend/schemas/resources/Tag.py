@@ -32,6 +32,7 @@ class DishReadExtended(BaseModel):
     name: str
     price: Decimal
     description: str | None = None
+    image_url: str | None = None
     tags: list[TagRead] = []
 
     model_config = {

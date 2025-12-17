@@ -33,7 +33,14 @@ class DishRepository:
         self.db.add(dish)
         await self.db.commit()
         await self.db.refresh(dish)
-        return dish
+
+        # Reload dish with tags relationship loaded
+        result = await self.db.execute(
+            select(Dish)
+            .where(Dish.id == dish.id)
+            .options(selectinload(Dish.tags))
+        )
+        return result.scalar_one()
 
     async def get_all_dishes(self, filters: DishFilter, include_tags: bool = False) -> list[Dish]:
         """Get all dishes with optional filters and eager load tags if requested."""
@@ -68,7 +75,7 @@ class DishRepository:
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
-    async def update_dish(self, dish_id: int, data: DishUpdate) -> Dish | None:
+    async def update_dish(self, dish_id: int, data: DishUpdate, allow_null_image: bool = False) -> Dish | None:
         """Update a dish by ID, including tag associations."""
         dish = await self.get_dish_by_id(dish_id)
         if dish is None:
@@ -76,7 +83,28 @@ class DishRepository:
 
         # Extract tag_ids from update data
         tag_ids = data.tag_ids
-        update_data = {k: v for k, v in data.model_dump(exclude={'tag_ids'}).items() if v is not None}
+
+        # Get all fields from the update data
+        all_data = data.model_dump(exclude={'tag_ids'})
+
+        # Separate handling for fields that can be explicitly set to None vs fields that are just not provided
+        update_data = {}
+
+        # Check which fields were explicitly set (not just defaulted to None)
+        set_fields = data.model_dump(exclude_unset=True, exclude={'tag_ids'})
+
+        for key, value in all_data.items():
+            # If the field was explicitly set
+            if key in set_fields:
+                # For image_url, allow None if flag is set (for explicit clearing)
+                if key == 'image_url' and value is None and allow_null_image:
+                    update_data[key] = None
+                # For other fields, only include non-None values
+                elif value is not None:
+                    update_data[key] = value
+                # Special case: image_url being set to None when allow_null_image is True
+                elif key == 'image_url' and allow_null_image:
+                    update_data[key] = None
 
         # Update basic fields if any
         if update_data:
@@ -100,8 +128,14 @@ class DishRepository:
                 dish.tags = []
 
         await self.db.commit()
-        await self.db.refresh(dish)
-        return dish
+
+        # Reload dish with tags relationship loaded
+        result = await self.db.execute(
+            select(Dish)
+            .where(Dish.id == dish_id)
+            .options(selectinload(Dish.tags))
+        )
+        return result.scalar_one()
 
     async def delete_dish(self, dish_id: int) -> Dish | None:
         """Delete a dish by ID."""

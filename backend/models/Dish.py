@@ -9,6 +9,7 @@ class Dish(Base):
     name = Column(String(255), nullable=False)
     price = Column(Numeric(10, 2), nullable=False)
     description = Column(Text, nullable=True)
+    image_url = Column(String(500), nullable=True)  # URL to Supabase storage
 
     order_items = relationship("OrderItem", back_populates="dish")
 
