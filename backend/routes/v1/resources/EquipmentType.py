@@ -5,9 +5,9 @@ from configs.postgre import get_db
 from repository.resources import EquipmentTypeRepository
 from schemas.resources import EquipmentTypeCreate, EquipmentTypeUpdate, EquipmentTypeRead, EquipmentTypeFilter
 
-router = APIRouter(prefix="/resources/equipment-types", tags=["Equipment Types"])
+router = APIRouter(prefix="/resources/equipment-types", tags=["Equipments"])
 
-@router.post("/", response_model=EquipmentTypeRead)
+@router.post("", response_model=EquipmentTypeRead)
 async def create_equipment_type(
     equipment_type: EquipmentTypeCreate,
     db: AsyncSession = Depends(get_db),
@@ -16,7 +16,7 @@ async def create_equipment_type(
     return await equipment_type_repository.create_equipment_type(equipment_type)
 
 
-@router.get("/", response_model=list[EquipmentTypeRead])
+@router.get("", response_model=list[EquipmentTypeRead])
 async def get_equipment_types(
     filter: EquipmentTypeFilter = Depends(),
     db: AsyncSession = Depends(get_db),

@@ -19,7 +19,7 @@ const formFields: FormField<Table>[] = [
     key: "status_id",
     label: "Status",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/tables/statuses/",
+    fetchUrl: "http://localhost:8000/api/v1/tables-statuses",
   },
 ];
 
@@ -30,7 +30,7 @@ const fields: FilterField[] = [
     key: "status_id",
     label: "Status",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/tables/statuses/",
+    fetchUrl: "http://localhost:8000/api/v1/tables-statuses",
     col: 2,
   },
 ];

@@ -159,7 +159,7 @@ class TableStatusRepository:
 
         result = await self.db.execute(query)
         statuses = result.scalars().all()
-        return [TableStatusRead.model_validate(status) for status in statuses]
+        return [status for status in statuses]
 
     async def update_table_status(self, status_id: int, data: TableStatusUpdate) -> TableStatusRead | None:
         status = await self.get_table_status_by_id(status_id)
