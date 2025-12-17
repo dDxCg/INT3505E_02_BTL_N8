@@ -8,3 +8,4 @@ from .Table import Table, TableStatus
 from .User import User, Role
 from .Payment import Payment, PaymentMethod, PaymentProvider, PaymentStatus
 from .Guest import Guest
+from .Tag import Tag, dish_tags_association

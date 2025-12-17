@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import BackButton from "../components/staff/shared/BackButton";
-import TableCard from "../components/staff/tables/TableCard";
-import { useTables } from "../hooks/useApi";
-import { getAvatarName } from "../utils/staffUtils";
+import BackButton from "../../components/staff/shared/BackButton";
+import TableCard from "../../components/staff/tables/TableCard";
+import { useTables } from "../../hooks/useApi";
+import { getAvatarName } from "../../utils/staffUtils";
 
 const TablesPage: React.FC = () => {
   const [status, setStatus] = useState("all");
@@ -34,15 +34,15 @@ const TablesPage: React.FC = () => {
     );
   }
 
-  // Filter tables based on status
-  const filteredTables = tables?.filter((table) => {
+  // Filter and sort tables based on status
+  const filteredTables = (tables?.filter((table) => {
     if (status === "all") return true;
-    // Backend returns status_id: 1 = available, 2 = occupied
-    if (status === "occupied") {
+    // Backend returns status_id: 1 = available, 2 = serving, 3 = reserved
+    if (status === "serving") {
       return table.status_id === 2;
     }
     return true;
-  }) || [];
+  }) || []).sort((a, b) => a.id - b.id);
 
   return (
     <section className="bg-[#1f1f1f] h-[calc(100vh-5rem)] overflow-hidden">
@@ -63,17 +63,17 @@ const TablesPage: React.FC = () => {
             All
           </button>
           <button
-            onClick={() => setStatus("occupied")}
+            onClick={() => setStatus("serving")}
             className={`text-[#ababab] text-lg ${
-              status === "occupied" && "bg-[#383838] rounded-lg px-5 py-2"
+              status === "serving" && "bg-[#383838] rounded-lg px-5 py-2"
             }  rounded-lg px-5 py-2 font-semibold`}
           >
-            Occupied
+            Serving
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-3 px-16 py-4 h-[650px] overflow-y-scroll scrollbar-hide">
+      <div className="grid grid-cols-5 gap-x-2 gap-y-0 px-16 py-4 h-[650px] overflow-y-scroll scrollbar-hide">
         {filteredTables.length === 0 ? (
           <div className="col-span-5 flex items-center justify-center text-[#ababab] text-lg">
             No tables found
@@ -82,8 +82,9 @@ const TablesPage: React.FC = () => {
           filteredTables.map((table) => {
             // Map API data to TableCard format
             const tableName = table.number?.toString() || `Table ${table.id}`;
-            const tableStatus = table.status_id === 2 ? "Occupied" : "Available";
+            const tableStatus = table.status_id === 2 ? "Serving" : "Available";
             const initials = getAvatarName(tableName);
+          
 
             return (
               <TableCard

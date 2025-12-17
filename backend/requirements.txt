@@ -7,3 +7,5 @@ python-dotenv==1.2.1
 SQLAlchemy==2.0.44
 uvicorn[standard]==0.38.0
 websockets==14.1
+supabase==2.10.0
+python-multipart==0.0.9

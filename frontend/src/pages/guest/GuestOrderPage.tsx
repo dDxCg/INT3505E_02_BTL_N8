@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Loader2, CheckCircle } from 'lucide-react';
-import { useCartStore } from '../store/cart';
+import { useCartStore } from '../../store/cart';
 import {
   getDishes,
   createOrder,
   addOrderItem,
-} from '../services/api';
-import { ordersApi } from '../api/services';
-import type { DishRead, OrderRead } from '../types/schema';
+} from '../../services/api';
+import { ordersApi } from '../../api/services';
+import type { DishRead, OrderRead } from '../../types/schema';
 
 export default function GuestOrderPage() {
   const [searchParams] = useSearchParams();

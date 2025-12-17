@@ -1,0 +1,171 @@
+.imageUploadContainer {
+  padding: 16px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0b1220;
+  margin-bottom: 8px;
+}
+
+.fileInput {
+  display: none;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.browseButton,
+.uploadButton,
+.clearButton,
+.deleteImageButton {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.browseButton {
+  background-color: #0b76ff;
+  color: white;
+}
+
+.browseButton:hover:not(:disabled) {
+  background-color: #0860d5;
+}
+
+.uploadButton {
+  background-color: #10b981;
+  color: white;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.clearButton {
+  background-color: #6b7280;
+  color: white;
+}
+
+.clearButton:hover:not(:disabled) {
+  background-color: #4b5563;
+}
+
+.deleteImageButton {
+  background-color: #ef4444;
+  color: white;
+  margin-top: 12px;
+}
+
+.deleteImageButton:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.browseButton:disabled,
+.uploadButton:disabled,
+.clearButton:disabled,
+.deleteImageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.currentImageSection,
+.previewSection {
+  margin-top: 16px;
+}
+
+.imageWrapper {
+  margin-top: 8px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  max-width: 400px;
+}
+
+.currentImage,
+.previewImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.fileName {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.helperText {
+  font-size: 13px;
+  color: #3b82f6;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.statusSuccess,
+.statusError,
+.statusInfo {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.statusSuccess {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.statusError {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.statusInfo {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .browseButton,
+  .uploadButton,
+  .clearButton {
+    width: 100%;
+  }
+
+  .imageWrapper {
+    max-width: 100%;
+  }
+}

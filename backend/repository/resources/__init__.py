@@ -2,3 +2,4 @@ from .Equipment import EquipmentRepository, EquipmentTypeRepository, EquipmentSt
 from .Ingredient import IngredientRepository, IngredientUnitRepository
 from .Table import TableRepository, TableStatusRepository
 from .Dish import DishRepository
+from .Tag import TagRepository
