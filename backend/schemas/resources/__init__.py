@@ -6,6 +6,7 @@ from .Ingredient import (IngredientCreate, IngredientUpdate, IngredientFilter, I
     IngredientUnitCreate, IngredientUnitUpdate, IngredientUnitFilter,IngredientUnitRead,
     IngredientHistoryCreate, IngredientHistoryRead, IngredientHistoryUpdate, IngredientHistoryFilter)
 
-from .Dish import (DishCreate, DishRead, DishUpdate, DishFilter)
+from .Dish import (DishCreate, DishRead, DishReadBase, DishUpdate, DishFilter)
 from .Table import (TableCreate, TableReadBase, TableUpdate, TableFilter, TableReadExtended)
 from .Table import (TableStatusCreate, TableStatusFilter, TableStatusUpdate, TableStatusRead)
+from .Tag import (TagCreate, TagRead, TagUpdate, TagFilter, DishReadExtended)
