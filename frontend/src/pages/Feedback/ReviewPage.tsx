@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
 
 export default function ReviewPage() {
   const navigate = useNavigate();
 
-  // Auto-redirect after 100 seconds
+  // Auto-redirect after 10 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate('/homepage');
-    }, 100000);
+      navigate('/guest-display');
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [navigate]);

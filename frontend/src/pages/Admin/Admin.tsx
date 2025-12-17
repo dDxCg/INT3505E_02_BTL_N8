@@ -3,6 +3,7 @@ import Sidebar, { SidebarItem } from "@/components/Admin/Sidebar/Sidebar";
 import styles from "./Admin.module.css";
 import EquipmentDashboard from "./Equipment/Dashboard";
 import IngredientDashboard from "./Ingredient/Dashboard";
+import DishDashboard from "./Dish/Dashboard";
 
 const AdminPage: React.FC = () => {
   const items: SidebarItem[] = [
@@ -11,6 +12,11 @@ const AdminPage: React.FC = () => {
       key: "ingredient",
       label: "Ingredient",
       component: <IngredientDashboard />,
+    },
+    {
+      key: "dish",
+      label: "Dish",
+      component: <DishDashboard />,
     },
     // add more sections here later
   ];
