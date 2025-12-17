@@ -25,8 +25,7 @@ class TrackingService:
         if start_dt >= end_dt:
             raise ValueError("Start date must be earlier than end date.")
         records = await self.db.execute(
-            select(IngredientHistory).options(
-                selectinload(IngredientHistory.ingredient)).where(
+            select(IngredientHistory).where(
                 and_(
                     IngredientHistory.ingredient_id == ingredient_id,
                     IngredientHistory.created_at >= start_dt,

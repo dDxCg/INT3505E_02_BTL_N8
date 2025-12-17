@@ -60,5 +60,4 @@ class IngredientHistoryRead(BaseModel):
     quantity_change: float 
     reason: str | None = None
     created_at: str 
-    ingredient: IngredientReadBase 
 

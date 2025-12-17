@@ -16,7 +16,7 @@ async def track_ingredient_usage(
     tracking_service = TrackingService(db)
     return await tracking_service.get_history_by_period(ingredient_id, start_date, end_date)
 
-@router.post("/restock")
+@router.get("/restock")
 async def suggest_restock_quantity(
     db: AsyncSession = Depends(get_db),
 ):

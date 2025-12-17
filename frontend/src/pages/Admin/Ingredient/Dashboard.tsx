@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import UnitPage from "./Unit";
 import IngredientPage from "./Ingredient";
 import Navbar, { NavbarPage } from "@/components/Admin/Navbar/Navbar";
+import { IngredientAnalyticsPage } from "./Analysis";
 
 const navPages: NavbarPage[] = [
   { key: "ingredient", label: "Ingredient", component: <IngredientPage /> },
@@ -9,8 +10,7 @@ const navPages: NavbarPage[] = [
   {
     key: "analysis",
     label: "Analysis",
-    component: <div>Analysis Coming Soon</div>,
-    disabled: true,
+    component: <IngredientAnalyticsPage />,
   },
 ];
 
