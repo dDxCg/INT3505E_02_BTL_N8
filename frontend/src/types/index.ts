@@ -9,12 +9,20 @@ export interface Table {
   seats: number;
 }
 
+// Tag
+export interface Tag {
+  id: number;
+  name: string;
+}
+
 // Dish
 export interface Dish {
   id: number;
   name: string;
   price: string; // Numeric in backend, string for precision
   description?: string;
+  image_url?: string; // Image URL from Supabase storage
+  tags?: Tag[]; // Associated tags/categories
 }
 
 // Order Status

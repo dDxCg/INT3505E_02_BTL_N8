@@ -2,6 +2,7 @@ import apiClient from './client';
 import type {
   Table,
   Dish,
+  Tag,
   Order,
   OrderRead,
   OrderItem,
@@ -34,8 +35,20 @@ export const tablesApi = {
 // ============================================
 export const dishesApi = {
   getAll: (filters?: DishFilter) =>
-    apiClient.get<Dish[]>('/resources/dishes/', { params: filters }),
-  getById: (id: number) => apiClient.get<Dish>(`/resources/dishes/${id}`),
+    apiClient.get<Dish[]>('/resources/dishes/', {
+      params: { ...filters, include_tags: true }
+    }),
+  getById: (id: number) => apiClient.get<Dish>(`/resources/dishes/${id}`, {
+    params: { include_tags: true }
+  }),
+};
+
+// ============================================
+// Tags API
+// ============================================
+export const tagsApi = {
+  getAll: () => apiClient.get<Tag[]>('/resources/tags/'),
+  getById: (id: number) => apiClient.get<Tag>(`/resources/tags/${id}`),
 };
 
 // ============================================

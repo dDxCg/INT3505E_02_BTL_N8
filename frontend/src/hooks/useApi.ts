@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@ta
 import {
   tablesApi,
   dishesApi,
+  tagsApi,
   ordersApi,
   orderItemsApi,
   orderStatusesApi,
@@ -65,6 +66,30 @@ export const useDish = (id: number) => {
     queryKey: ['dishes', id],
     queryFn: async () => {
       const response = await dishesApi.getById(id);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+};
+
+// ============================================
+// Tags Hooks
+// ============================================
+export const useTags = () => {
+  return useQuery({
+    queryKey: ['tags'],
+    queryFn: async () => {
+      const response = await tagsApi.getAll();
+      return response.data;
+    },
+  });
+};
+
+export const useTag = (id: number) => {
+  return useQuery({
+    queryKey: ['tags', id],
+    queryFn: async () => {
+      const response = await tagsApi.getById(id);
       return response.data;
     },
     enabled: !!id,

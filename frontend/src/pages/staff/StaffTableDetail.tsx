@@ -211,44 +211,43 @@ export default function StaffTableDetail() {
         </div>
       </header>
 
-      {/* Main Container with Responsive Grid */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LEFT COLUMN (Span-2 on Desktop) - Header + Order List */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Desktop-Only Header Card */}
-            <div className="hidden lg:block bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <button
-                onClick={() => navigate('/staff')}
-                className="mb-4 p-2 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="text-sm font-medium">Quay lại</span>
-              </button>
+      {/* Main Container - Edge-to-Edge Fluid Layout */}
+      <div className="lg:flex lg:min-h-screen bg-gray-50">
+        {/* LEFT COLUMN - Order List (70% Fluid, Expandable) */}
+        <div className="lg:flex-1 px-4 md:px-8 lg:px-12 xl:px-16 py-6 bg-white lg:bg-gray-50 overflow-y-auto">
+          {/* Desktop-Only Header Card - Full Width */}
+          <div className="hidden lg:block bg-white rounded-xl shadow-sm p-8 border border-gray-200 mb-6">
+            <button
+              onClick={() => navigate('/staff')}
+              className="mb-6 p-2 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="text-sm font-medium">Quay lại</span>
+            </button>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Bàn #{table.number}</h1>
-                  <p className="text-sm text-gray-500 mt-1">{table.seats} chỗ ngồi</p>
-                </div>
-                <span className={`text-sm font-medium px-4 py-2 rounded-full ${tableStatus.color}`}>
-                  {tableStatus.label}
-                </span>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900">Bàn #{table.number}</h1>
+                <p className="text-base text-gray-500 mt-2">{table.seats} chỗ ngồi</p>
               </div>
+              <span className={`text-base font-semibold px-6 py-3 rounded-full ${tableStatus.color}`}>
+                {tableStatus.label}
+              </span>
             </div>
+          </div>
 
-            {/* Order List Content */}
-            {!activeOrder ? (
-              // No Active Order
-              <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-                <div className="text-6xl mb-4">🍽️</div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Bàn đang trống
-                </h2>
-                <p className="text-gray-600">Chưa có order nào đang active</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
+          {/* Order List Content */}
+          {!activeOrder ? (
+            // No Active Order - Full Width
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
+              <div className="text-8xl mb-6">🍽️</div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                Bàn đang trống
+              </h2>
+              <p className="text-gray-600 text-lg">Chưa có order nào đang active</p>
+            </div>
+          ) : (
+            <div className="space-y-4 max-w-5xl mx-auto">
             {/* Pending Items Section */}
             {pendingItems.length > 0 && (
               <div className="mb-6">
@@ -349,82 +348,140 @@ export default function StaffTableDetail() {
               </div>
             )}
 
-                {/* Empty State */}
-                {pendingItems.length === 0 && servedItems.length === 0 && (
-                  <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-                    <div className="text-6xl mb-4">📋</div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">
-                      Chưa có món nào
-                    </h2>
-                    <p className="text-gray-600">
-                      Order đã tạo nhưng chưa có món được gọi
-                    </p>
-                  </div>
-                )}
               </div>
             )}
-          </div>
 
-          {/* RIGHT COLUMN (Span-1 on Desktop) - Bill Summary & Actions */}
-          {activeOrder && orderItems.length > 0 && (
-            <div className="hidden lg:block lg:col-span-1">
-              <div className="sticky top-6">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                  <h2 className="text-lg font-bold text-gray-900 mb-6">Hóa đơn</h2>
+            {/* Empty State When Order Exists But No Items - Full Width */}
+            {activeOrder && pendingItems.length === 0 && servedItems.length === 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
+                <div className="text-8xl mb-6">📋</div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                  Chưa có món nào
+                </h2>
+                <p className="text-gray-600 text-lg">
+                  Order đã tạo nhưng chưa có món được gọi
+                </p>
+              </div>
+            )}
+        </div>
 
-                  {/* Order Items Summary */}
-                  <div className="space-y-3 mb-6 max-h-80 overflow-y-auto pr-2">
-                    {orderItems.map((item) => (
-                      <div key={item.id} className="flex justify-between items-start text-sm pb-3 border-b border-gray-100 last:border-b-0">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900 leading-tight">{item.dish.name}</p>
-                          <p className="text-gray-500 text-xs mt-1">
-                            {formatPrice(item.dish.price)} × {item.quantity}
-                          </p>
-                        </div>
-                        <p className="font-semibold text-gray-900 ml-3">
-                          {formatPrice(item.dish.price * item.quantity)}
-                        </p>
-                      </div>
-                    ))}
+        {/* RIGHT COLUMN - Invoice Sidebar (30% Fixed, Anchored Right Edge) */}
+        {activeOrder && orderItems.length > 0 && (
+          <div className="hidden lg:flex lg:flex-col lg:w-[30%] lg:max-w-[600px] lg:min-w-[450px] bg-gradient-to-b from-gray-50 to-gray-100 border-l-4 border-red-200 shadow-[-8px_0_24px_rgba(0,0,0,0.12)] h-screen overflow-y-auto">
+            <div className="p-8">
+                {/* Invoice Card - Receipt Style */}
+                <div className="bg-white rounded-xl shadow-xl border border-gray-300 overflow-hidden">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-red-600 to-red-700 px-8 py-6">
+                    <h2 className="text-2xl font-bold text-white mb-2">Hóa đơn</h2>
+                    <div className="flex items-center justify-between text-red-50 text-sm">
+                      <span>Bàn #{table.number}</span>
+                      <span>{orderItems.length} món</span>
+                    </div>
                   </div>
 
-                  {/* Breakdown Section */}
-                  <div className="border-t-2 border-gray-200 pt-4 mb-6 space-y-3">
-                    {/* Subtotal */}
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Tạm tính</span>
-                      <span className="font-medium text-gray-900">{formatPrice(subtotal)}</span>
+                  {/* Order Items - Receipt Style List - Takes 60% of Available Space */}
+                  <div className="px-8 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-500" style={{ minHeight: '45vh', maxHeight: 'calc(100vh - 500px)' }}>
+                    <div className="space-y-5 pr-2">
+                      {orderItems.map((item, index) => (
+                        <div
+                          key={item.id}
+                          className="pb-6 mb-2 border-b-2 border-gray-200 last:border-b-0"
+                        >
+                          {/* Item Header */}
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-gray-400 font-mono text-sm">#{index + 1}</span>
+                                <h3 className="font-bold text-gray-900 text-base">{item.dish.name}</h3>
+                              </div>
+                              {/* Status Badge */}
+                              <div className="flex items-center gap-2 mt-2">
+                                {item.status_id === 1 ? (
+                                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+                                    <AlertCircle className="w-3 h-3" />
+                                    Chờ xử lý
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                    <Check className="w-3 h-3" />
+                                    Đã phục vụ
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Price Calculation */}
+                          <div className="mt-4 bg-gray-50 rounded-lg p-4">
+                            <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+                              <span>Đơn giá</span>
+                              <span className="font-mono">{formatPrice(item.dish.price)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-600 mb-3">
+                              <span>Số lượng</span>
+                              <span className="font-mono">× {item.quantity}</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                              <span className="font-semibold text-gray-900">Thành tiền</span>
+                              <span className="font-bold text-lg text-gray-900 font-mono">
+                                {formatPrice(item.dish.price * item.quantity)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Summary Section - Compact */}
+                  <div className="px-8 py-5 bg-gray-50 border-t-2 border-gray-200">
+                    {/* Summary Stats Row - Inline Centered */}
+                    <div className="flex items-center justify-center gap-8 mb-5 pb-4 border-b border-gray-200">
+                      <div className="text-center">
+                        <p className="text-xs text-blue-600 font-medium mb-1">Tổng món</p>
+                        <p className="text-2xl font-bold text-blue-700">{orderItems.length}</p>
+                      </div>
+                      <div className="h-12 w-px bg-gray-300"></div>
+                      <div className="text-center">
+                        <p className="text-xs text-orange-600 font-medium mb-1">Chờ xử lý</p>
+                        <p className="text-2xl font-bold text-orange-700">{pendingItems.length}</p>
+                      </div>
                     </div>
 
-                    {/* Tax */}
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">VAT (10%)</span>
-                      <span className="font-medium text-gray-900">{formatPrice(taxAmount)}</span>
-                    </div>
-
-                    {/* Total */}
-                    <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-                      <span className="text-base font-semibold text-gray-700">Tổng cộng</span>
-                      <span className="text-3xl font-bold text-gray-900">
-                        {formatPrice(totalAmount)}
-                      </span>
+                    {/* Pricing Breakdown */}
+                    <div className="space-y-2.5">
+                      <div className="flex justify-between items-center text-base">
+                        <span className="text-gray-600 font-medium">Tạm tính</span>
+                        <span className="font-semibold text-gray-900 font-mono">{formatPrice(subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-base">
+                        <span className="text-gray-600 font-medium">VAT (10%)</span>
+                        <span className="font-semibold text-gray-900 font-mono">{formatPrice(taxAmount)}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-3 mt-3 border-t-2 border-gray-300">
+                        <span className="text-lg font-bold text-gray-900">Tổng cộng</span>
+                        <span className="text-3xl font-bold text-red-600 font-mono">
+                          {formatPrice(totalAmount)}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Action Button */}
-                  <button
-                    onClick={handleGoToPayment}
-                    className="w-full px-6 py-4 bg-red-600 text-white rounded-xl font-bold text-lg hover:bg-red-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
-                  >
-                    <Printer className="w-5 h-5" />
-                    Đi đến thanh toán
-                  </button>
+                  <div className="px-8 py-6">
+                    <button
+                      onClick={handleGoToPayment}
+                      className="w-full px-8 py-5 bg-red-600 text-white rounded-xl font-bold text-xl hover:bg-red-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 active:scale-95"
+                    >
+                      <Printer className="w-6 h-6" />
+                      Đi đến thanh toán
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
-        </div>
       </div>
 
       {/* Mobile-Only Sticky Payment Footer */}
