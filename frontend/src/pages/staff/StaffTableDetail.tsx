@@ -27,6 +27,10 @@ export default function StaffTableDetail() {
   const ITEM_STATUS = { PREPARING: 1, READY: 2, SERVED: 3 } as const;
 
 
+  const ORDER_STATUS = { CREATED: 1, PREPARING: 2, READY: 3, SERVED: 4, COMPLETED: 5 } as const;
+  const ITEM_STATUS = { PREPARING: 1, READY: 2, SERVED: 3 } as const;
+
+
   // State
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
