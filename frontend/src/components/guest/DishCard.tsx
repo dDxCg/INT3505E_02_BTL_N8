@@ -7,8 +7,24 @@ interface DishCardProps {
 }
 
 export const DishCard = ({ dish, onAddToCart }: DishCardProps) => {
+  // Default placeholder image if no image_url is provided
+  const imageUrl = dish.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80';
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+      {/* Dish Image */}
+      <div className="aspect-video w-full overflow-hidden bg-gray-100">
+        <img
+          src={imageUrl}
+          alt={dish.name}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => {
+            // Fallback to placeholder if image fails to load
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80';
+          }}
+        />
+      </div>
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold text-gray-900">{dish.name}</h3>

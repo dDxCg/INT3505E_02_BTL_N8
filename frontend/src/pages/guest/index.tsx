@@ -1,21 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ShoppingCart, Plus, Minus, ArrowLeft, X, ChevronRight, Trash2, CheckCircle } from 'lucide-react';
-import { useDishes, useCreateOrder, useCreateOrderItem, useOrders, useOrderItems } from '../../hooks/useApi';
+import { useDishes, useTags, useCreateOrder, useCreateOrderItem, useOrders, useOrderItems } from '../../hooks/useApi';
 import { useCartStore } from '../../stores/cartStore';
 import type { Dish, OrderRead, OrderItemRead } from '../../types';
 import './styles.css';
-
-// Mock categories - replace with actual data if available
-const CATEGORIES = [
-  { id: 'all', label: 'Tất cả', active: true },
-  { id: 'appetizers', label: 'Khai vị' },
-  { id: 'mains', label: 'Món chính' },
-  { id: 'desserts', label: 'Tráng miệng' },
-  { id: 'beverages', label: 'Đồ uống' },
-  { id: 'specials', label: 'Đặc biệt' },
-];
 
 // Order item status configuration
 const ITEM_STATUS_CONFIG = {
@@ -34,7 +24,7 @@ export default function GuestOrderPage() {
   // Support both path parameter (/order/5) and query parameter (/order?tableId=5)
   const tableId = parseInt(tableIdParam || searchParams.get('tableId') || '0');
 
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState<number | 'all'>('all');
   const [showCart, setShowCart] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -45,6 +35,7 @@ export default function GuestOrderPage() {
   const hasShownResetRef = useRef(false);
 
   const { data: dishes, isLoading, error } = useDishes();
+  const { data: tags, isLoading: tagsLoading } = useTags();
 
   // Enable polling to detect when staff closes the table
   const { data: orders, isLoading: ordersLoading, isFetching: ordersFetching } = useOrders(
@@ -162,6 +153,43 @@ export default function GuestOrderPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Build categories dynamically from tags
+  const categories = useMemo(() => {
+    const allCategory = { id: 'all' as const, label: 'Tất cả' };
+
+    if (!tags || tags.length === 0) {
+      return [allCategory];
+    }
+
+    // Map tags to category format with tag id as number
+    const tagCategories = tags.map(tag => ({
+      id: tag.id,
+      label: tag.name,
+    }));
+
+    return [allCategory, ...tagCategories];
+  }, [tags]);
+
+  // Filter and sort dishes
+  const filteredAndSortedDishes = useMemo(() => {
+    if (!dishes || dishes.length === 0) {
+      return [];
+    }
+
+    // Step 1: Filter by active category
+    let filtered = dishes;
+    if (activeCategory !== 'all') {
+      filtered = dishes.filter(dish =>
+        dish.tags?.some(tag => tag.id === activeCategory)
+      );
+    }
+
+    // Step 2: Sort by dish ID in ascending order
+    const sorted = [...filtered].sort((a, b) => a.id - b.id);
+
+    return sorted;
+  }, [dishes, activeCategory]);
 
   const handleAddToCart = (dish: Dish) => {
     addItem(dish, 1);
@@ -358,7 +386,7 @@ export default function GuestOrderPage() {
         {/* Category Pills */}
         <div className="categories-wrapper">
           <div className="categories-scroll">
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
@@ -387,9 +415,9 @@ export default function GuestOrderPage() {
                 </div>
               ))}
             </div>
-          ) : dishes && dishes.length > 0 ? (
+          ) : filteredAndSortedDishes && filteredAndSortedDishes.length > 0 ? (
             <div className="dishes-grid">
-              {dishes.map((dish, index) => {
+              {filteredAndSortedDishes.map((dish, index) => {
                 const quantity = getItemQuantity(dish.id);
                 return (
                   <article
@@ -401,10 +429,13 @@ export default function GuestOrderPage() {
                   >
                     <div className="dish-image">
                       <img
-                        src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80"
+                        src={dish.image_url || "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80"}
                         alt={dish.name}
                         className="dish-image-img"
                         loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80';
+                        }}
                       />
                       {quantity > 0 && (
                         <div className="quantity-badge">{quantity}</div>
@@ -511,9 +542,12 @@ export default function GuestOrderPage() {
                       <div key={item.dish.id} className="new-item-card">
                         <div className="new-item-image">
                           <img
-                            src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=120&q=80"
+                            src={item.dish.image_url || "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=120&q=80"}
                             alt={item.dish.name}
                             className="item-img"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=120&q=80';
+                            }}
                           />
                         </div>
                         <div className="new-item-details">

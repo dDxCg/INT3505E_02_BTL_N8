@@ -576,10 +576,13 @@ export default function MyOrderPage() {
                     >
                       {/* Image - Left */}
                       <img
-                        src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=80&h=80&fit=crop"
+                        src={item.dish.image_url || "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=80&h=80&fit=crop"}
                         alt={item.dish.name}
                         className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                         loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=80&h=80&fit=crop';
+                        }}
                       />
 
                       {/* Info - Right */}

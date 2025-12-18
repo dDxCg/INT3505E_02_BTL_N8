@@ -11,7 +11,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
-  userName = "TEST USER",
+  userName = "Test",
   userRole = "Role",
   onLogout,
 }) => {
@@ -75,11 +75,9 @@ const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={handleLogout}
-            className="ml-2 cursor-pointer"
-            title="Logout"
-          >
-            <IoLogOut className="text-[#f5f5f5]" size={40} />
-          </button>
+            className="text-[#f5f5f5] ml-2 cursor-pointer"
+            size={35}
+          />
         </div>
       </div>
     </header>

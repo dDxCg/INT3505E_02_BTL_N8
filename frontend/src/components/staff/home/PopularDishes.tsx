@@ -35,7 +35,7 @@ const PopularDishes: React.FC = () => {
                     {dish.name}
                   </h1>
                   <p className="text-[#f5f5f5] text-sm font-semibold mt-1">
-                    <span className="text-[#ababab]">Orders: </span>
+                    <span className="text-[#ababab]"> </span>
                     {dish.numberOfOrders}
                   </p>
                 </div>

@@ -197,9 +197,25 @@ export default function GuestOrderPage() {
                 key={dish.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden"
               >
-                {/* Dish Image Placeholder */}
-                <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                  <span className="text-6xl">🍜</span>
+                {/* Dish Image */}
+                <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                  {dish.image_url ? (
+                    <img
+                      src={dish.image_url}
+                      alt={dish.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          parent.innerHTML = '<span class="text-6xl">🍜</span>';
+                        }
+                      }}
+                    />
+                  ) : (
+                    <span className="text-6xl">🍜</span>
+                  )}
                 </div>
 
                 {/* Dish Info */}

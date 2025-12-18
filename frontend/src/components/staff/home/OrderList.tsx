@@ -26,18 +26,30 @@ const OrderList: React.FC<OrderListProps> = ({ order }) => {
         </h1>
 
         <div className="flex flex-col items-end gap-2">
-          {order.status === "Ready" ? (
-            <>
-              <p className="text-green-600 bg-[#2e4a40] px-2 py-1 rounded-lg">
-                <FaCheckDouble className="inline mr-2" /> {order.status}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-yellow-600 bg-[#4a452e] px-2 py-1 rounded-lg">
-                <FaCircle className="inline mr-2" /> {order.status}
-              </p>
-            </>
+          {order.status === "Created" && (
+            <p className="text-blue-500 bg-blue-500/10 px-3 py-1 rounded-lg text-sm">
+              <FaCircle className="inline mr-2" /> {order.status}
+            </p>
+          )}
+          {order.status === "Preparing" && (
+            <p className="text-orange-500 bg-orange-500/10 px-3 py-1 rounded-lg text-sm">
+              <FaCircle className="inline mr-2" /> {order.status}
+            </p>
+          )}
+          {order.status === "Ready" && (
+            <p className="text-green-500 bg-green-500/10 px-3 py-1 rounded-lg text-sm">
+              <FaCheckDouble className="inline mr-2" /> {order.status}
+            </p>
+          )}
+          {order.status === "Served" && (
+            <p className="text-cyan-500 bg-cyan-500/10 px-3 py-1 rounded-lg text-sm">
+              <FaCheckDouble className="inline mr-2" /> {order.status}
+            </p>
+          )}
+          {order.status === "Completed" && (
+            <p className="text-purple-500 bg-purple-500/10 px-3 py-1 rounded-lg text-sm">
+              <FaCheckDouble className="inline mr-2" /> {order.status}
+            </p>
           )}
         </div>
       </div>

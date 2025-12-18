@@ -2,37 +2,49 @@ import { useState, useMemo, useEffect } from "react";
 import { GrRadialSelected } from "react-icons/gr";
 import { FaShoppingCart } from "react-icons/fa";
 import { usePOSStore } from "../../../stores/posStore";
-import { useDishes } from "../../../hooks/useApi";
+import { useDishes, useTags } from "../../../hooks/useApi";
 import type { MenuCategory, MenuItem } from "../../../types/staff.types";
 
 const MenuContainer: React.FC = () => {
-  // Fetch dishes from API
+  // Fetch dishes with tags and images from API
   const { data: dishesData, isLoading } = useDishes();
+  const { data: tagsData, isLoading: tagsLoading } = useTags();
   const addToCart = usePOSStore((state) => state.addToCart);
 
-  // Create menu categories from API dishes
+  // Create menu categories from tags
   const menus: MenuCategory[] = useMemo(() => {
-    if (!dishesData) return [];
+    if (!dishesData || !tagsData) return [];
 
-    // For now, put all dishes in one "All Items" category
-    // TODO: Backend should add category field to dishes table
-    const allItems: MenuItem[] = dishesData.map(dish => ({
-      id: dish.id,
-      name: dish.name,
-      price: typeof dish.price === 'string' ? parseFloat(dish.price) : dish.price,
-      category: "All Items"
-    }));
+    // Sort dishes by ID ascending for consistent ordering
+    const sortedDishes = [...dishesData].sort((a, b) => a.id - b.id);
 
-    return [
-      {
-        id: 1,
-        name: "All Items",
-        bgColor: "#b73e3e",
-        icon: "🍽️",
-        items: allItems
-      }
-    ];
-  }, [dishesData]);
+    // Create categories from tags only (no "Tất cả" category)
+    const tagCategories: MenuCategory[] = tagsData.map((tag, index) => {
+      const categoryDishes = sortedDishes
+        .filter(dish => dish.tags?.some(dishTag => dishTag.id === tag.id))
+        .map(dish => ({
+          id: dish.id,
+          name: dish.name,
+          price: typeof dish.price === 'string' ? parseFloat(dish.price) : dish.price,
+          category: tag.name,
+          image_url: dish.image_url
+        }));
+
+      // Assign colors based on tag
+      const colors = ["#2e7d32", "#f57c00", "#c2185b", "#0288d1"];
+      const icons = ["🥗", "🍖", "🍰", "🥤"];
+
+      return {
+        id: tag.id,
+        name: tag.name,
+        bgColor: colors[index % colors.length],
+        icon: icons[index % icons.length],
+        items: categoryDishes
+      };
+    });
+
+    return tagCategories;
+  }, [dishesData, tagsData]);
 
   const [selected, setSelected] = useState<MenuCategory | null>(null);
   const [itemCount, setItemCount] = useState(0);
@@ -46,7 +58,7 @@ const MenuContainer: React.FC = () => {
   }, [menus, selected]);
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || tagsLoading) {
     return (
       <div className="flex items-center justify-center h-[500px]">
         <p className="text-[#f5f5f5] text-xl">Loading menu...</p>
@@ -84,14 +96,15 @@ const MenuContainer: React.FC = () => {
   };
 
   return (
-    <>
+    <div className="flex flex-col gap-10">
+      
       {/* Category Grid */}
-      <div className="grid grid-cols-4 gap-4 px-10 py-4 w-[100%]">
+      <div className="grid grid-cols-4 gap-4 px-10 py-4 w-[100%] mb-0">
         {menus.map((menu) => {
           return (
             <div
               key={menu.id}
-              className="flex flex-col items-start justify-between p-4 rounded-lg h-[100px] cursor-pointer"
+              className="flex flex-col items-center justify-center p-4 rounded-lg h-[100px] cursor-pointer"
               style={{ backgroundColor: menu.bgColor }}
               onClick={() => {
                 setSelected(menu);
@@ -99,70 +112,87 @@ const MenuContainer: React.FC = () => {
                 setItemCount(0);
               }}
             >
-              <div className="flex items-center justify-between w-full">
-                <h1 className="text-[#f5f5f5] text-lg font-semibold">
+              <div className="flex flex-col items-center justify-center w-full gap-2">
+                <h1 className="text-[#f5f5f5] text-2xl font-bold flex flex-col items-center">
                   {menu.icon} {menu.name}
                 </h1>
                 {selected?.id === menu.id && (
                   <GrRadialSelected className="text-white" size={20} />
                 )}
               </div>
-              <p className="text-[#ababab] text-sm font-semibold">
-                {menu.items.length} Items
-              </p>
+    
             </div>
           );
         })}
       </div>
 
-      <hr className="border-[#2a2a2a] border-t-2 mt-4" />
-
       {/* Items Grid */}
-      <div className="grid grid-cols-4 gap-4 px-10 py-4 w-[100%]">
+      <div className="grid grid-cols-5 gap-3 px-10 py-4 w-[100%] overflow-y-auto max-h-[calc(100vh-300px)]">
         {selected?.items.map((item) => {
           return (
             <div
               key={item.id}
-              className="flex flex-col items-start justify-between p-4 rounded-lg h-[150px] cursor-pointer hover:bg-[#2a2a2a] bg-[#1a1a1a]"
+              className="flex flex-col items-start justify-between rounded-lg h-[200px] cursor-pointer hover:bg-[#2a2a2a] bg-[#1a1a1a] overflow-hidden"
             >
-              <div className="flex items-start justify-between w-full">
-                <h1 className="text-[#f5f5f5] text-lg font-semibold">
-                  {item.name}
-                </h1>
-                <button
-                  onClick={() => handleAddToCart(item)}
-                  className="bg-[#2e4a40] text-[#02ca3a] p-2 rounded-lg"
-                >
-                  <FaShoppingCart size={20} />
-                </button>
+              {/* Dish Image */}
+              <div className="w-full h-[110px] bg-gray-800 overflow-hidden">
+                {item.image_url ? (
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-orange-200">
+                    <span className="text-3xl">🍜</span>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center justify-between w-full">
-                <p className="text-[#f5f5f5] text-xl font-bold">
-                  {item.price.toLocaleString('vi-VN')}₫
-                </p>
-                <div className="flex items-center justify-between bg-[#1f1f1f] px-4 py-3 rounded-lg gap-6 w-[50%]">
+
+              {/* Item Info */}
+              <div className="p-3 w-full flex flex-col gap-1">
+                <div className="flex items-start justify-between w-full gap-2">
+                  <h1 className="text-[#f5f5f5] text-sm font-semibold line-clamp-1 flex-1">
+                    {item.name}
+                  </h1>
                   <button
-                    onClick={() => decrement(item.id)}
-                    className="text-yellow-500 text-2xl"
+                    onClick={() => handleAddToCart(item)}
+                    className="bg-[#2e4a40] text-[#02ca3a] p-1.5 rounded-lg flex-shrink-0"
                   >
-                    &minus;
+                    <FaShoppingCart size={12} />
                   </button>
-                  <span className="text-white">
-                    {itemId === item.id ? itemCount : "0"}
-                  </span>
-                  <button
-                    onClick={() => increment(item.id)}
-                    className="text-yellow-500 text-2xl"
-                  >
-                    &#43;
-                  </button>
+                </div>
+                <div className="flex items-center justify-between w-full">
+                  <p className="text-[#f5f5f5] text-sm font-bold">
+                    {item.price.toLocaleString('vi-VN')}₫
+                  </p>
+                  <div className="flex items-center justify-between bg-[#1f1f1f] px-2 py-1 rounded-lg gap-2">
+                    <button
+                      onClick={() => decrement(item.id)}
+                      className="text-yellow-500 text-base"
+                    >
+                      &minus;
+                    </button>
+                    <span className="text-white text-xs min-w-[15px] text-center">
+                      {itemId === item.id ? itemCount : "0"}
+                    </span>
+                    <button
+                      onClick={() => increment(item.id)}
+                      className="text-yellow-500 text-base"
+                    >
+                      &#43;
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           );
         })}
       </div>
-    </>
+    </div>
   );
 };
 

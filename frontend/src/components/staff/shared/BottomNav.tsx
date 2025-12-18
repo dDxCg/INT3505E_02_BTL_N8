@@ -41,7 +41,7 @@ const BottomNav: React.FC = () => {
         onClick={() => navigate("/staff")}
         className={`flex items-center justify-center font-bold ${
           isActive("/staff") ? "text-[#f5f5f5] bg-[#343434]" : "text-[#ababab]"
-        } w-[300px] rounded-[20px]`}
+        } w-[300px] rounded-[20px] gap-2`}
       >
         <FaHome className="inline mr-2" size={20} /> <p>Home</p>
       </button>
@@ -49,20 +49,20 @@ const BottomNav: React.FC = () => {
         onClick={() => navigate("/staff/orders")}
         className={`flex items-center justify-center font-bold ${
           isActive("/staff/orders") ? "text-[#f5f5f5] bg-[#343434]" : "text-[#ababab]"
-        } w-[300px] rounded-[20px]`}
+        } w-[300px] rounded-[20px] gap-2`}
       >
         <MdOutlineReorder className="inline mr-2" size={20} /> <p>Orders</p>
       </button>
       <button
         onClick={() => navigate("/staff/tables")}
-        className={`flex items-center justify-center font-bold ${
+        className={`flex items-center justify-center font-bold  ${
           isActive("/staff/tables") ? "text-[#f5f5f5] bg-[#343434]" : "text-[#ababab]"
-        } w-[300px] rounded-[20px]`}
+        } w-[300px] rounded-[20px] gap-2`}
       >
         <MdTableBar className="inline mr-2" size={20} /> <p>Tables</p>
       </button>
-      <button className="flex items-center justify-center font-bold text-[#ababab] w-[300px]">
-        <CiCircleMore className="inline mr-2" size={20} /> <p>More</p>
+      <button className="flex items-center justify-center font-bold text-[#ababab] w-[300px] gap-2">
+        <CiCircleMore className="inline" size={20} /> <p>More</p>
       </button>
 
       <button
@@ -70,7 +70,7 @@ const BottomNav: React.FC = () => {
         onClick={openModal}
         className="absolute bottom-6 bg-[#F6B100] text-[#f5f5f5] rounded-full p-4 items-center disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <BiSolidDish size={40} />
+        <BiSolidDish size={50} />
       </button>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title="Create Order">
@@ -93,7 +93,7 @@ const BottomNav: React.FC = () => {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               type="number"
-              placeholder="+91-9999999999"
+              placeholder="+84-123-456-789"
               className="bg-transparent flex-1 text-white focus:outline-none"
             />
           </div>

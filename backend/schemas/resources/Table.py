@@ -16,8 +16,8 @@ class TableStatusCreate(BaseModel):
 class TableStatusUpdate(BaseModel):
     status: Optional[str] = None
 
-class TableStatusFilter(TableStatusUpdate):
-    pass
+class TableStatusFilter(BaseModel):
+    status: Optional[str] = None
 
 #---Table---
 class TableCreate(BaseModel):

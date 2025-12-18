@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 const Greetings: React.FC = () => {
   // TODO: Get user data from Zustand store
-  const userName = "TEST USER";
+  const userName = "TEST";
   const [dateTime, setDateTime] = useState(new Date());
 
   useEffect(() => {
