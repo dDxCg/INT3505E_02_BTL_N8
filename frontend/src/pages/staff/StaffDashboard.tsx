@@ -14,13 +14,15 @@ export default function StaffDashboard() {
   return (
     <section className="bg-[#1f1f1f] h-[calc(100vh-5rem)] overflow-hidden flex gap-3">
       {/* Left Div */}
-      <div className="flex-[3]">
+      <div className="flex-[3] flex-col gap-8">
         <Greetings />
         <div className="flex items-center w-full gap-3 px-8 mt-8">
-          <MiniCard title="Total Earnings" icon={<BsCashCoin />} number={512} footerNum={1.6} />
-          <MiniCard title="In Progress" icon={<GrInProgress />} number={16} footerNum={3.6} />
+          <MiniCard title="CƠ SỞ 1: 144 Xuân Thủy" />
+          <MiniCard title="Restro 8"/>
         </div>
-        <RecentOrders />
+      <div>
+        <RecentOrders classname="mt-20"/>
+      </div>
       </div>
       {/* Right Div */}
       <div className="flex-[2]">

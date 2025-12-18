@@ -31,62 +31,59 @@ export const useStaffStore = create<StaffState>((set) => ({
     {
       id: 1,
       image: butterChicken, 
-      name: 'Butter Chicken',
-      numberOfOrders: 250,
+      name: 'Bò Mỹ lát mỏng',
     },
     {
       id: 2,
       image: palakPaneer,
-      name: 'Palak Paneer',
-      numberOfOrders: 190,
+      name: 'Lẩu Cà Chua',
     },
     {
       id: 3,
       image: biryani,
-      name: 'Hyderabadi Biryani',
-      numberOfOrders: 300,
+      name: 'Lẩu Thái',
     },
     {
       id: 4,
       image: masalaDosa,
-      name: 'Masala Dosa',
-      numberOfOrders: 220,
+      name: 'Lẩu Nấm',
+      
     },
     {
       id: 5,
       image: choleBhature,
-      name: 'Chole Bhature',
-      numberOfOrders: 270,
+      name: 'Lẩu Dầu Cay',
+      
     },
     {
       id: 6,
       image: rajmaChawal,
-      name: 'Rajma Chawal',
-      numberOfOrders: 180,
+      name: 'Thịt thăn bò',
+      
     },
     {
       id: 7,
       image: paneerTikka,
-      name: 'Paneer Tikka',
-      numberOfOrders: 210,
+      name: 'Há cảo tôm',
+      
     },
     {
       id: 8,
       image: gulabJamun,
-      name: 'Gulab Jamun',
-      numberOfOrders: 310,
+      name: 'Bò cuộn nấm',
+      
     },
     {
       id: 9,
       image: pooriSabji,
-      name: 'Poori Sabji',
-      numberOfOrders: 140,
+      name: 'Pudding xoài',
+      
     },
     {
       id: 10,
       image: roganJosh,
-      name: 'Rogan Josh',
-      numberOfOrders: 160,
+      name: 'Tôm sú tươi',
+      
     },
   ],
 
