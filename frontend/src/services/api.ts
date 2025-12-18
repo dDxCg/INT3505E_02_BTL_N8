@@ -152,19 +152,14 @@ export const getOrders = async (filters?: OrderFilter): Promise<OrderRead[]> => 
  * Lấy orders theo bàn (dùng cho Staff xem order đang active)
  * Thường filter: status_id=1 (pending) để lấy order đang chờ
  */
-export const getOrderByTable = async (
-  tableId: number,
-  statusId?: number
-): Promise<OrderRead[]> => {
-  const filters: OrderFilter = {
-    table_id: tableId,
-    status_id: statusId,
-  };
-  const response = await apiClient.get<OrderRead[]>('/orders', {
-    params: filters,
-  });
+export const getOrderByTable = async (tableId: number, statusId?: number): Promise<OrderRead[]> => {
+  const params: any = { table_id: tableId };
+  if (typeof statusId === "number") params.status_id = statusId;
+
+  const response = await apiClient.get<OrderRead[]>("/orders", { params });
   return response.data;
 };
+
 
 /**
  * GET /orders/{order_id}
