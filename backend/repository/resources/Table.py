@@ -32,10 +32,7 @@ class TableRepository:
         if existing.scalar_one_or_none() is not None:
             raise ValueError(f"Table number {data.number} already exists.")
 
-        table = Table(
-            number=data.number,
-            seats=data.seats,
-        )
+        table = Table(**data.model_dump())
         self.db.add(table)
         await self.db.commit()
         await self.db.refresh(table)
@@ -48,7 +45,7 @@ class TableRepository:
         conditions = []
 
         if filters.number is not None:
-            conditions.append(Table.number == filters.number)
+            conditions.append(Table.number.ilike(f"%{filters.number}%"))
         if filters.seats is not None:
             conditions.append(Table.seats == filters.seats)
         if filters.status_id is not None:
@@ -102,6 +99,8 @@ class TableRepository:
             update_data["number"] = data.number
         if data.seats is not None:
             update_data["seats"] = data.seats
+        if data.status_id is not None:
+            update_data["status_id"] = data.status_id
 
         if not update_data:
             return TableReadBase.model_validate(table)
@@ -139,26 +138,28 @@ class TableStatusRepository:
         self.db.add(table_status)
         await self.db.commit()
         await self.db.refresh(table_status)
-        return TableStatusRead.model_validate(table_status)
+        return table_status
 
     async def get_table_status_by_id(self, status_id: int) -> TableStatusRead | None:
         result = await self.db.execute(select(TableStatus).where(TableStatus.id == status_id))
         table_status = result.scalar_one_or_none()
-        return TableStatusRead.model_validate(table_status)
+        if table_status is None:
+            return None
+        return table_status
 
     async def get_all_table_statuses(self, filters: TableStatusFilter) -> list[TableStatusRead]:
         query = select(TableStatus)
         conditions = []
 
         if filters.status is not None:
-            conditions.append(TableStatus.status.ilike(f"%{filters.status}"))
+            conditions.append(TableStatus.status.ilike(f"%{filters.status}%"))
         
         if conditions:
             query = query.where(and_(*conditions))
 
         result = await self.db.execute(query)
         statuses = result.scalars().all()
-        return [TableStatusRead.model_validate(status) for status in statuses]
+        return [status for status in statuses]
 
     async def update_table_status(self, status_id: int, data: TableStatusUpdate) -> TableStatusRead | None:
         status = await self.get_table_status_by_id(status_id)
@@ -176,13 +177,13 @@ class TableStatusRepository:
         await self.db.execute(update(TableStatus).where(TableStatus.id == status_id).values(**update_data))
         await self.db.commit()
         await self.db.refresh(status)
-        return TableStatusRead.model_validate(status)
+        return status
 
     async def delete_table_status(self, status_id: int) -> TableStatusRead | None:
-        status = self.get_table_status_by_id(status_id)
+        status = await self.get_table_status_by_id(status_id)
         if status is None:
             return None
         
         await self.db.execute(delete(TableStatus).where(TableStatus.id == status_id))
         await self.db.commit()
-        return TableStatusRead.model_validate(status)
+        return status

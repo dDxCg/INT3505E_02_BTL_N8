@@ -1,4 +1,8 @@
-export type FilterFieldType = "text" | "select" | "select-fetch";
+export type FilterFieldType =
+  | "text"
+  | "select"
+  | "select-fetch"
+  | "date";
 
 export interface FilterOption {
   label: string;

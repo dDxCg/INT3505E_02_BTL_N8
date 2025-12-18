@@ -14,21 +14,22 @@ class TableStatusCreate(BaseModel):
     status: str
 
 class TableStatusUpdate(BaseModel):
-    status: Optional[str]
+    status: Optional[str] = None
 
-class TableStatusFilter(TableStatusUpdate):
-    pass
+class TableStatusFilter(BaseModel):
+    status: Optional[str] = None
 
 #---Table---
 class TableCreate(BaseModel):
     """Create a table"""
-    number: int = Field(..., gt=0)
+    number: str 
     seats: int = Field(..., ge=1)
+    status_id: int
 
 
 class TableUpdate(BaseModel):
     """Update table info"""
-    number: Optional[int] = Field(None, gt=0)
+    number: Optional[str] = None
     seats: Optional[int] = Field(None, ge=1)
     status_id: Optional[int] = None
 
@@ -41,7 +42,7 @@ class TableFilter(TableUpdate):
 class TableReadBase(BaseModel):
     """Read table"""
     id: int
-    number: int
+    number: str
     seats: int
     status_id: int
 

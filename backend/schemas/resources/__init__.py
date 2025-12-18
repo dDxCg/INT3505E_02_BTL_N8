@@ -4,8 +4,9 @@ from .Equipment import (EquipmentCreate, EquipmentFilter, EquipmentUpdate,Equipm
 
 from .Ingredient import (IngredientCreate, IngredientUpdate, IngredientFilter, IngredientReadBase, IngredientReadExtended,
     IngredientUnitCreate, IngredientUnitUpdate, IngredientUnitFilter,IngredientUnitRead,
-    IngredientHistoryCreate, IngredientHistoryRead, IngredientHistoryUpdate, IngredientHistoryFilter)
+    IngredientHistoryRead)
 
-from .Dish import (DishCreate, DishRead, DishUpdate, DishFilter)
+from .Dish import (DishCreate, DishRead, DishReadBase, DishUpdate, DishFilter)
 from .Table import (TableCreate, TableReadBase, TableUpdate, TableFilter, TableReadExtended)
 from .Table import (TableStatusCreate, TableStatusFilter, TableStatusUpdate, TableStatusRead)
+from .Tag import (TagCreate, TagRead, TagUpdate, TagFilter, DishReadExtended)

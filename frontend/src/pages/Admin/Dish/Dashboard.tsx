@@ -1,20 +1,20 @@
 import React, { useState } from "react";
-import UnitPage from "./Unit";
-import IngredientPage from "./Ingredient";
+import DishPage from "./Dish";
+import TagPage from "./Tag";
 import Navbar, { NavbarPage } from "@/components/Admin/Navbar/Navbar";
-import { IngredientAnalyticsPage } from "./Analysis";
 
 const navPages: NavbarPage[] = [
-  { key: "ingredient", label: "Ingredient", component: <IngredientPage /> },
-  { key: "unit", label: "Unit", component: <UnitPage /> },
+  { key: "dish", label: "Dish", component: <DishPage /> },
+  { key: "tags", label: "Tags", component: <TagPage /> },
   {
     key: "analysis",
     label: "Analysis",
-    component: <IngredientAnalyticsPage />,
+    component: <div>Analysis Coming Soon</div>,
+    disabled: true,
   },
 ];
 
-const IngredientDashboard: React.FC = () => {
+const DishDashboard: React.FC = () => {
   const [activePage, setActivePage] = useState(navPages[0]);
 
   return (
@@ -29,4 +29,4 @@ const IngredientDashboard: React.FC = () => {
   );
 };
 
-export default IngredientDashboard;
+export default DishDashboard;

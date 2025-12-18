@@ -1,23 +1,30 @@
 import { useState, useEffect } from 'react';
+import logoImage from '../../assets/images/logo.png';
+import butterChicken from '../../assets/images/butter-chicken-4.jpg';
+import biryani from '../../assets/images/hyderabadibiryani.jpg';
+import paneerTika from '../../assets/images/paneer-tika.webp';
+import masalaDosa from '../../assets/images/masala-dosa.jpg';
+import roganJosh from '../../assets/images/rogan-josh.jpg';
+import saagPaneer from '../../assets/images/Saag-Paneer-1.jpg';
 
 export default function GuestDisplayPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Food images from your assets directory
   const foodImages = [
-    '/src/assets/images/butter-chicken-4.jpg',
-    '/src/assets/images/hyderabadibiryani.jpg',
-    '/src/assets/images/paneer-tika.webp',
-    '/src/assets/images/masala-dosa.jpg',
-    '/src/assets/images/rogan-josh.jpg',
-    '/src/assets/images/Saag-Paneer-1.jpg',
+    butterChicken,
+    biryani,
+    paneerTika,
+    masalaDosa,
+    roganJosh,
+    saagPaneer,
   ];
 
-  // Auto-advance slideshow every 4 seconds
+  // Auto-advance slideshow every 6 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % foodImages.length);
-    }, 4000);
+    }, 6000);
 
     return () => clearInterval(timer);
   }, [foodImages.length]);
@@ -66,7 +73,7 @@ export default function GuestDisplayPage() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <img
-              src="/src/assets/images/logo.png"
+              src={logoImage}
               alt="Restro 8 Logo"
               className="h-24 w-auto object-contain drop-shadow-2xl"
             />

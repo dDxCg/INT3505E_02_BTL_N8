@@ -62,6 +62,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 onChange={onChange}
               />
             )}
+
+            {f.type === "date" && (
+              <input
+                type="date"
+                aria-label={f.label}
+                className={styles.input}
+                value={values[f.key] ?? ""}
+                onChange={(e) => onChange(f.key, e.target.value)}
+              />
+            )}
           </div>
         );
       })}

@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from models import IngredientUnit
 
 # --- Ingredient Unit Schemas ---
 class IngredientUnitCreate(BaseModel):
@@ -54,29 +53,11 @@ class IngredientReadExtended(IngredientReadBase):
 
 
 # --- Ingredient History Schemas ---
-class IngredientHistoryCreate(BaseModel):
-    ingredient_id: int
-    change: float
-    reason: str | None = None
-    created_at: str | None = None
-
-
 class IngredientHistoryRead(BaseModel):
-    id: int
     ingredient_id: int
-    change: float
+    old_quantity: float 
+    new_quantity: float 
+    quantity_change: float 
     reason: str | None = None
-    created_at: str
+    created_at: str 
 
-    model_config = {
-        "from_attributes": True
-    }
-
-class IngredientHistoryUpdate(BaseModel):
-    ingredient_id: int | None = None
-    change: float | None = None
-    reason: str | None = None
-    created_at: str | None = None
-
-class IngredientHistoryFilter(IngredientHistoryUpdate):
-    pass
