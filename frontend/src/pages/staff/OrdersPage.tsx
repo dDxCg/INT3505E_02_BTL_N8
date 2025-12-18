@@ -18,15 +18,15 @@ const OrderCardWithData: React.FC<{ orderData: OrderRead; onOrderClick: (order: 
   const getStatusName = (statusId: number): string => {
     switch (statusId) {
       case 1:
-        return "Pending";
+        return "Created";
       case 2:
-        return "In Progress";
+        return "Preparing";
       case 3:
         return "Ready";
       case 4:
-        return "Completed";
+        return "Served";
       case 5:
-        return "Cancelled";
+        return "Completed";
       default:
         return "Unknown";
     }
@@ -34,12 +34,12 @@ const OrderCardWithData: React.FC<{ orderData: OrderRead; onOrderClick: (order: 
 
   const order: Order = {
     id: orderData.id.toString(),
-    customer: orderData.guest_id ? `Guest ${orderData.guest_id}` : `Customer ${orderData.id}`,
+    customer: `Order #${orderData.id}`,
     tableNo: orderData.table_id.toString(),
     status: getStatusName(orderData.status_id),
     dateTime: new Date().toISOString(),
     items: orderItems?.length || 0,
-    total: totalData?.total || 0,
+    total: totalData || 0,
   };
 
   return <OrderCard order={order} onClick={() => onOrderClick(order)} />;
@@ -52,14 +52,16 @@ const OrdersPage: React.FC = () => {
   // Map status filter to status_id
   const getStatusId = (statusFilter: string): number | undefined => {
     switch (statusFilter) {
-      case "pending":
-        return 1; // PENDING - Guest orders start here!
-      case "progress":
-        return 2; // COOKING
+      case "created":
+        return 1; // CREATED
+      case "preparing":
+        return 2; // PREPARING
       case "ready":
-        return 3; // COMPLETED
+        return 3; // READY
+      case "served":
+        return 4; // SERVED
       case "completed":
-        return 4; // PAID
+        return 5; // COMPLETED
       default:
         return undefined; // all
     }
@@ -70,6 +72,12 @@ const OrdersPage: React.FC = () => {
   const { data: ordersData, isLoading, error } = useOrders(
     statusId ? { status_id: statusId } : {}  // Pass empty object instead of undefined
   );
+
+  // Sort orders in descending order (newest first)
+  const sortedOrders = useMemo(() => {
+    if (!ordersData) return [];
+    return [...ordersData].sort((a, b) => b.id - a.id);
+  }, [ordersData]);
 
   useEffect(() => {
     document.title = "POS | Orders";
@@ -103,8 +111,8 @@ const OrdersPage: React.FC = () => {
   }
 
   return (
-    <section className="bg-[#1f1f1f] h-[calc(100vh-5rem)] overflow-hidden">
-      <div className="flex items-center justify-between px-10 py-4">
+    <section className="bg-[#1f1f1f] min-h-screen flex flex-col">
+      <div className="flex-shrink-0 flex items-center justify-between px-10 py-4">
         <div className="flex items-center gap-4">
           <BackButton />
           <h1 className="text-[#f5f5f5] text-2xl font-bold tracking-wider">
@@ -121,20 +129,20 @@ const OrdersPage: React.FC = () => {
             All
           </button>
           <button
-            onClick={() => setStatus("pending")}
+            onClick={() => setStatus("created")}
             className={`text-[#ababab] text-lg ${
-              status === "pending" && "bg-[#383838] rounded-lg px-5 py-2"
+              status === "created" && "bg-[#383838] rounded-lg px-5 py-2"
             }  rounded-lg px-5 py-2 font-semibold`}
           >
-            Pending
+            Created
           </button>
           <button
-            onClick={() => setStatus("progress")}
+            onClick={() => setStatus("preparing")}
             className={`text-[#ababab] text-lg ${
-              status === "progress" && "bg-[#383838] rounded-lg px-5 py-2"
+              status === "preparing" && "bg-[#383838] rounded-lg px-5 py-2"
             }  rounded-lg px-5 py-2 font-semibold`}
           >
-            In Progress
+            Preparing
           </button>
           <button
             onClick={() => setStatus("ready")}
@@ -143,6 +151,14 @@ const OrdersPage: React.FC = () => {
             }  rounded-lg px-5 py-2 font-semibold`}
           >
             Ready
+          </button>
+          <button
+            onClick={() => setStatus("served")}
+            className={`text-[#ababab] text-lg ${
+              status === "served" && "bg-[#383838] rounded-lg px-5 py-2"
+            }  rounded-lg px-5 py-2 font-semibold`}
+          >
+            Served
           </button>
           <button
             onClick={() => setStatus("completed")}
@@ -155,13 +171,13 @@ const OrdersPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 px-16 py-4 overflow-y-scroll scrollbar-hide">
-        {ordersData && ordersData.length > 0 ? (
-          ordersData.map((orderData) => {
+      <div className="flex-1 grid grid-cols-[repeat(auto-fill,minmax(400px,1fr))] gap-4 px-8 py-6 overflow-y-auto content-start auto-rows-min">
+        {sortedOrders && sortedOrders.length > 0 ? (
+          sortedOrders.map((orderData) => {
             return <OrderCardWithData key={orderData.id} orderData={orderData} onOrderClick={setSelectedOrder} />;
           })
         ) : (
-          <p className="col-span-3 text-gray-500">No orders available</p>
+          <p className="col-span-full text-gray-500 text-center">No orders available</p>
         )}
       </div>
 

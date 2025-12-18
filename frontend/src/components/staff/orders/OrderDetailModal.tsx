@@ -14,14 +14,16 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onClose }) =
   // Map status_id to color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Pending":
-        return "text-yellow-500 bg-yellow-500/10";
-      case "In Progress":
+      case "Created":
+        return "text-blue-500 bg-blue-500/10";
+      case "Preparing":
         return "text-orange-500 bg-orange-500/10";
       case "Ready":
         return "text-green-500 bg-green-500/10";
+      case "Served":
+        return "text-cyan-500 bg-cyan-500/10";
       case "Completed":
-        return "text-blue-500 bg-blue-500/10";
+        return "text-purple-500 bg-purple-500/10";
       default:
         return "text-gray-500 bg-gray-500/10";
     }
@@ -33,11 +35,11 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onClose }) =
       case 1:
         return { label: "Pending", color: "text-yellow-500" };
       case 2:
-        return { label: "Cooking", color: "text-orange-500" };
+        return { label: "Preparing", color: "text-orange-500" };
       case 3:
         return { label: "Ready", color: "text-green-500" };
       case 4:
-        return { label: "Served", color: "text-blue-500" };
+        return { label: "Served", color: "text-cyan-500" };
       default:
         return { label: "Unknown", color: "text-gray-500" };
     }
@@ -66,7 +68,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onClose }) =
           <div className="bg-[#262626] rounded-lg p-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-[#ababab] text-sm">Customer</p>
+                <p className="text-[#ababab] text-sm">Order</p>
                 <p className="text-[#f5f5f5] font-semibold">{order.customer}</p>
               </div>
               <div>
