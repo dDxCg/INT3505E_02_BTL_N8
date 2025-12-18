@@ -14,6 +14,7 @@ import {
   getOrderItems,
   updateItemStatus,
   deleteOrderItem,
+  updateOrder,
 } from '../../services/api';
 import type { TableRead, OrderRead, OrderItemRead } from '../../types/schema';
 import { toast } from 'react-toastify';
@@ -21,6 +22,10 @@ import { toast } from 'react-toastify';
 export default function StaffTableDetail() {
   const { tableId } = useParams<{ tableId: string }>();
   const navigate = useNavigate();
+
+  const ORDER_STATUS = { CREATED: 1, PREPARING: 2, READY: 3, SERVED: 4, COMPLETED: 5 } as const;
+  const ITEM_STATUS = { PREPARING: 1, READY: 2, SERVED: 3 } as const;
+
 
   // State
   const [table, setTable] = useState<TableRead | null>(null);
@@ -34,36 +39,41 @@ export default function StaffTableDetail() {
   // ============================================
 
   const fetchTableData = async () => {
-    if (!tableId) return;
+  if (!tableId) return;
 
-    try {
-      const tableIdNum = parseInt(tableId);
+  const tableIdNum = parseInt(tableId, 10);
+  setLoading(true);
 
-      // Fetch table info and active orders
-      const [tableData, orders] = await Promise.all([
-        getTableById(tableIdNum),
-        getOrderByTable(tableIdNum, 1), // status_id=1 (pending/active)
-      ]);
+  try {
+    const [tableData, orders] = await Promise.all([
+      getTableById(tableIdNum),
+      getOrderByTable(tableIdNum),
+    ]);
 
-      setTable(tableData);
+    setTable(tableData);
 
-      if (orders.length > 0) {
-        const order = orders[0];
-        setActiveOrder(order);
+    // chọn "active order" = order mới nhất mà chưa completed
+    const active = (orders || [])
+      .filter((o) => o.status_id !== ORDER_STATUS.COMPLETED)
+      .sort((a, b) => b.id - a.id)[0];
 
-        // Fetch order items
-        const items = await getOrderItems(order.id);
-        setOrderItems(items);
-      } else {
-        setActiveOrder(null);
-        setOrderItems([]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch table data:', error);
-    } finally {
-      setLoading(false);
+    if (active) {
+      setActiveOrder(active);
+      const items = await getOrderItems(active.id);
+      setOrderItems(items);
+    } else {
+      setActiveOrder(null);
+      setOrderItems([]);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch table data:", error);
+    // optional: toast.error("Không tải được dữ liệu bàn");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   useEffect(() => {
     fetchTableData();
@@ -81,18 +91,34 @@ export default function StaffTableDetail() {
   // ============================================
 
   const handleServeItem = async (itemId: number) => {
-    try {
-      setActionLoading(itemId);
-      await updateItemStatus(itemId, { status_id: 2 }); // 2 = Served
-      await fetchTableData(); // Refresh data
-      toast.success('Đã lên món thành công');
-    } catch (error) {
-      console.error('Failed to serve item:', error);
-      toast.error('Không thể lên món. Vui lòng thử lại.');
-    } finally {
-      setActionLoading(null);
+  if (!activeOrder) return;
+
+  try {
+    setActionLoading(itemId);
+
+    // 1) served món
+    await updateItemStatus(itemId, { status_id: ITEM_STATUS.SERVED });
+
+    // 2) check lại tất cả món của order hiện tại
+    const items = await getOrderItems(activeOrder.id);
+    const allServed = items.length > 0 && items.every(i => i.status_id === ITEM_STATUS.SERVED);
+
+    // 3) nếu tất cả món served -> đẩy ORDER sang SERVED (=4)
+    if (allServed && activeOrder.status_id !== ORDER_STATUS.SERVED) {
+      await updateOrder(activeOrder.id, { status_id: ORDER_STATUS.SERVED });
     }
-  };
+
+    // 4) refresh UI
+    await fetchTableData();
+    toast.success('Đã lên món thành công');
+  } catch (error) {
+    console.error('Failed to serve item:', error);
+    toast.error('Không thể lên món. Vui lòng thử lại.');
+  } finally {
+    setActionLoading(null);
+  }
+};
+
 
   const handleCancelItem = async (itemId: number) => {
     if (!confirm('Bạn có chắc muốn hủy món này?')) return;
@@ -111,18 +137,32 @@ export default function StaffTableDetail() {
   };
 
   const handleGoToPayment = () => {
-    if (!table) return;
+  if (!table) return;
 
-    // Navigate to POS page for payment
-    navigate('/staff/pos', {
-      state: {
-        tableId: table.id,
-        tableNo: table.number.toString(),
-        seats: table.seats,
-        status: 'Occupied'
-      }
-    });
-  };
+  if (!activeOrder) {
+    toast.error("Bàn này chưa có order để thanh toán");
+    return;
+  }
+
+  // served = 4
+
+  
+  if (activeOrder.status_id !== 4) {
+    toast.warning("Chỉ thanh toán khi order ở trạng thái SERVED");
+    return;
+  }
+
+  // Đi sang màn QR VNPay (màn mới)
+  navigate("/staff/payment/vnpay", {
+    state: {
+      tableId: table.id,                 
+      tableNo: String(table.number),     
+      bookingId: activeOrder.id,         
+      amount: totalAmount,               
+    },
+  });
+};
+
 
   // ============================================
   // CALCULATIONS

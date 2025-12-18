@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import QRCode from 'react-qr-code';
 import './PaymentVNPayScreen.css';
+import { toast } from "react-toastify";
+
 
 type Payment = {
   id: number;
@@ -15,7 +17,15 @@ type Payment = {
   provider_transaction_id?: string | null;
 };
 
-const API_BASE = 'http://localhost:8000/api/v1'; // nếu em có sẵn env thì dùng env
+type PaymentScreenState = {
+  bookingId: number;      
+  tableId: number;        
+  tableLabel: string;     
+  amount: number;         
+};
+
+
+const API_BASE = 'http://localhost:8000/api/v1'; // nếu có sẵn env thì dùng env
 
 function formatCurrency(amount: number, currency: string) {
   if (currency === 'VND') {
@@ -31,11 +41,24 @@ export default function PaymentVNPayScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // TODO: sau này nhận orderId/bookingId từ params
-  const bookingId = 1;
-  const displayTableLabel = '1';
+  const location = useLocation();
+  const state = location.state as PaymentScreenState | null;
+
+  // Nếu user gõ thẳng URL mà không đi từ flow -> không có state
+  useEffect(() => {
+    if (!state) navigate('/staff', { replace: true });
+  }, [state, navigate]);
+
+  const bookingId = state?.bookingId ?? 0;
+  const displayTableLabel = state?.tableLabel ?? '';
+  const amount = state?.amount ?? 0;
+
 
   const createPayment = async () => {
+    if (!bookingId || !amount) {
+  setError('Thiếu bookingId/amount (đi sai flow)');
+  return;
+}
     setLoading(true);
     setError(null);
     try {
@@ -47,7 +70,7 @@ export default function PaymentVNPayScreen() {
         body: JSON.stringify({
           booking_id: bookingId,
           currency: 'VND',
-          amount: 200000,
+          amount,
           method_id: 2, // bank / e-wallet
           provider_id: 2, // VNPAY
         }),
@@ -67,9 +90,37 @@ export default function PaymentVNPayScreen() {
   };
 
   useEffect(() => {
-    // Nếu muốn auto tạo payment khi mở màn thì bỏ comment:
-    // createPayment();
-  }, []);
+  if (state) createPayment();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [state]);
+
+  useEffect(() => {
+    if (!payment?.id) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const resp = await fetch(`${API_BASE}/payments/${payment.id}`);
+        if (!resp.ok) return;
+
+        const latest: Payment = await resp.json();
+        setPayment(latest);
+
+        // TODO: đổi số này theo payment_statuses
+        const SUCCESS_ID = 2;
+
+        if (latest.status_id === SUCCESS_ID) {
+          clearInterval(interval);
+          toast.success(`Thanh toán bàn ${displayTableLabel} thành công!`);
+          navigate("/staff", { replace: true });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [payment?.id, navigate, displayTableLabel]);
+
 
   return (
     <div className="payvnp-page">
