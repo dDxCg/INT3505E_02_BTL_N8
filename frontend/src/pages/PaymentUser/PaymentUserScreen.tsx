@@ -2,8 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "./PaymentUserScreen.css";
+import { apiClient } from '@/api/client';
 
-const API_BASE_URL = "http://localhost:8000/api/v1";
 const DEMO_ORDER_ID = 1; // fallback khi mở /payment-demo
 
 type PaymentStatus =
@@ -204,20 +204,11 @@ export default function PaymentUserScreen() {
   // đóng order khi thanh toán thành công
   async function closeOrder(orderId: number) {
     try {
-      const res = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status_id: 3 }),
-      });
-      if (!res.ok) {
-        console.error(
-          "[Payment] Failed to close order",
-          res.status,
-          await res.text()
-        );
-      }
-    } catch (err) {
+      await apiClient.put(`/orders/${orderId}`, { status_id: 3 });
+    } catch (err: any) {
       console.error("[Payment] Error when closing order:", err);
+      const errorMsg = err.response?.data?.detail || err.message || "Failed to close order";
+      console.error("[Payment]", errorMsg);
     }
   }
 
@@ -252,52 +243,34 @@ export default function PaymentUserScreen() {
       setErrorOrder(null);
       setErrorOrderItems(null);
 
-      const orderUrl = `${API_BASE_URL}/orders/${currentOrderId}`;
-      const itemsUrl = `${API_BASE_URL}/orders/items/?order_id=${currentOrderId}`;
-
       const [orderRes, itemsRes] = await Promise.all([
-        fetch(orderUrl),
-        fetch(itemsUrl),
+        apiClient.get(`/orders/${currentOrderId}`),
+        apiClient.get(`/orders/items/`, { params: { order_id: currentOrderId } }),
       ]);
 
-      if (!orderRes.ok) {
-        setErrorOrder(
-          `Không lấy được thông tin order (HTTP ${orderRes.status})`
-        );
-      } else {
-        const orderData: Order = await orderRes.json();
-        setOrder(orderData);
+      const orderData: Order = orderRes.data;
+      setOrder(orderData);
 
-        // load thông tin bàn + lịch sử thanh toán theo bàn
-        if (orderData.table_id) {
-          try {
-            const tableRes = await fetch(
-              `${API_BASE_URL}/tables/${orderData.table_id}`
-            );
-            if (tableRes.ok) {
-              const tableData: TableInfo = await tableRes.json();
-              setTableInfo(tableData);
-            }
-          } catch (err) {
-            console.error("[Payment] Error when fetching table info:", err);
-          }
-
-          await fetchTableHistory(orderData.table_id);
+      // load thông tin bàn + lịch sử thanh toán theo bàn
+      if (orderData.table_id) {
+        try {
+          const tableRes = await apiClient.get(`/tables/${orderData.table_id}`);
+          const tableData: TableInfo = tableRes.data;
+          setTableInfo(tableData);
+        } catch (err) {
+          console.error("[Payment] Error when fetching table info:", err);
         }
+
+        await fetchTableHistory(orderData.table_id);
       }
 
-      if (!itemsRes.ok) {
-        setErrorOrderItems(
-          `Không lấy được danh sách món (HTTP ${itemsRes.status})`
-        );
-      } else {
-        const itemsData: OrderItem[] = await itemsRes.json();
-        setOrderItems(itemsData);
-      }
-    } catch (err) {
+      const itemsData: OrderItem[] = itemsRes.data;
+      setOrderItems(itemsData);
+    } catch (err: any) {
       console.error("[Payment] Error when fetching order/items:", err);
-      if (!errorOrder) setErrorOrder("Không lấy được thông tin order");
-      if (!errorOrderItems) setErrorOrderItems("Không lấy được danh sách món");
+      const errorMsg = err.response?.data?.detail || err.message;
+      if (!errorOrder) setErrorOrder(errorMsg || "Không lấy được thông tin order");
+      if (!errorOrderItems) setErrorOrderItems(errorMsg || "Không lấy được danh sách món");
     } finally {
       setIsLoadingOrder(false);
     }
@@ -325,28 +298,16 @@ export default function PaymentUserScreen() {
         provider_id: 1,
       };
 
-      const res = await fetch(`${API_BASE_URL}/payments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Tạo payment thất bại: ${res.status} - ${text}`);
-      }
-
-      const data: Payment = await res.json();
-      // console.log(data);
+      const response = await apiClient.post(`/payments`, body);
+      const data: Payment = response.data;
       setPayment(data);
 
       if (order.table_id) {
         await fetchTableHistory(order.table_id);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      const message =
-        err instanceof Error ? err.message : "Có lỗi xảy ra khi tạo payment";
+      const message = err.response?.data?.detail || err.message || "Có lỗi xảy ra khi tạo payment";
       setErrorPayment(message);
     } finally {
       setIsCreating(false);
@@ -357,9 +318,8 @@ export default function PaymentUserScreen() {
     if (!payment) return;
     try {
       setIsRefreshing(true);
-      const res = await fetch(`${API_BASE_URL}/payments/${payment.id}`);
-      if (!res.ok) return;
-      const data: Payment = await res.json();
+      const response = await apiClient.get(`/payments/${payment.id}`);
+      const data: Payment = response.data;
       setPayment(data);
 
       if (order?.table_id) {
@@ -383,38 +343,14 @@ export default function PaymentUserScreen() {
 
       if (newStatus === "REFUNDED") {
         // dùng endpoint refund riêng
-        const res = await fetch(
-          `${API_BASE_URL}/payments/${payment.id}/refund`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              amount: payment.amount,
-              reason: "Manual refund từ màn staff",
-            }),
-          }
-        );
-
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Hoàn tiền thất bại: ${res.status} - ${text}`);
-        }
+        await apiClient.post(`/payments/${payment.id}/refund`, {
+          amount: payment.amount,
+          reason: "Manual refund từ màn staff",
+        });
       } else {
         // các trạng thái khác dùng PUT /payments/{id} với status_id (KHÔNG còn 422)
         const status_id = statusToId(newStatus);
-
-        const res = await fetch(`${API_BASE_URL}/payments/${payment.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status_id }),
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(
-            `Cập nhật trạng thái thất bại: ${res.status} - ${text}`
-          );
-        }
+        await apiClient.put(`/payments/${payment.id}`, { status_id });
       }
 
       // nếu SUCCESS thì đóng order
@@ -427,12 +363,9 @@ export default function PaymentUserScreen() {
         await fetchTableHistory(order.table_id);
       }
       await handleRefreshStatus();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Có lỗi xảy ra khi cập nhật trạng thái";
+      const message = err.response?.data?.detail || err.message || "Có lỗi xảy ra khi cập nhật trạng thái";
       setErrorPayment(message);
     } finally {
       setIsUpdatingStatus(false);
