@@ -9,72 +9,54 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import {
-  getTableById,
-  getOrderByTable,
-  getOrderItems,
-  updateItemStatus,
-  deleteOrderItem,
-} from '../../services/api';
+  useTable,
+  useOrders,
+  useOrderItems,
+  useUpdateOrderItem,
+  useDeleteOrderItem,
+} from '../../hooks/useApi';
 import type { TableRead, OrderRead, OrderItemRead } from '../../types/schema';
 import { toast } from 'react-toastify';
 
 export default function StaffTableDetail() {
   const { tableId } = useParams<{ tableId: string }>();
   const navigate = useNavigate();
+  const tableIdNum = tableId ? parseInt(tableId) : 0;
 
   // State
-  const [table, setTable] = useState<TableRead | null>(null);
-  const [activeOrder, setActiveOrder] = useState<OrderRead | null>(null);
-  const [orderItems, setOrderItems] = useState<OrderItemRead[]>([]);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-  // ============================================
-  // FETCH DATA WITH AUTO-REFRESH
-  // ============================================
+  // Fetch table data
+  const { data: table, isLoading: tableLoading } = useTable(tableIdNum);
 
-  const fetchTableData = async () => {
-    if (!tableId) return;
-
-    try {
-      const tableIdNum = parseInt(tableId);
-
-      // Fetch table info and active orders
-      const [tableData, orders] = await Promise.all([
-        getTableById(tableIdNum),
-        getOrderByTable(tableIdNum, 1), // status_id=1 (pending/active)
-      ]);
-
-      setTable(tableData);
-
-      if (orders.length > 0) {
-        const order = orders[0];
-        setActiveOrder(order);
-
-        // Fetch order items
-        const items = await getOrderItems(order.id);
-        setOrderItems(items);
-      } else {
-        setActiveOrder(null);
-        setOrderItems([]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch table data:', error);
-    } finally {
-      setLoading(false);
+  // Fetch orders for this table (status 1 or 2: pending/cooking)
+  const { data: ordersData, isLoading: ordersLoading } = useOrders(
+    { table_id: tableIdNum },
+    {
+      enabled: !!tableIdNum,
+      refetchInterval: 3000, // Auto-refresh every 3 seconds
     }
-  };
+  );
 
-  useEffect(() => {
-    fetchTableData();
+  // Get the active order (status_id 1 or 2)
+  const activeOrder = ordersData?.find(order =>
+    order.status_id && order.status_id >= 1 && order.status_id <= 2
+  ) || null;
 
-    // Auto-refresh every 3 seconds
-    const interval = setInterval(() => {
-      fetchTableData();
-    }, 3000);
+  // Fetch order items if there's an active order
+  const { data: orderItems = [], isLoading: itemsLoading } = useOrderItems(
+    activeOrder ? { order_id: activeOrder.id } : undefined,
+    {
+      enabled: !!activeOrder,
+      refetchInterval: 3000, // Auto-refresh every 3 seconds
+    }
+  );
 
-    return () => clearInterval(interval);
-  }, [tableId]);
+  const loading = tableLoading || ordersLoading || itemsLoading;
+
+  // Mutations
+  const updateOrderItem = useUpdateOrderItem();
+  const deleteOrderItem = useDeleteOrderItem();
 
   // ============================================
   // HANDLERS
@@ -83,8 +65,10 @@ export default function StaffTableDetail() {
   const handleServeItem = async (itemId: number) => {
     try {
       setActionLoading(itemId);
-      await updateItemStatus(itemId, { status_id: 2 }); // 2 = Served
-      await fetchTableData(); // Refresh data
+      await updateOrderItem.mutateAsync({
+        id: itemId,
+        data: { status_id: 2 } // 2 = Preparing/Served
+      });
       toast.success('Đã lên món thành công');
     } catch (error) {
       console.error('Failed to serve item:', error);
@@ -99,8 +83,7 @@ export default function StaffTableDetail() {
 
     try {
       setActionLoading(itemId);
-      await deleteOrderItem(itemId);
-      await fetchTableData(); // Refresh data
+      await deleteOrderItem.mutateAsync(itemId);
       toast.success('Đã hủy món thành công');
     } catch (error) {
       console.error('Failed to cancel item:', error);

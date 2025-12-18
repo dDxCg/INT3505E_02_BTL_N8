@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { usePOSStore } from "../../../stores/posStore";
 import { useCreateOrder, useCreateOrderItem, useCompleteOrder } from "../../../hooks/useApi";
 import { useNavigate } from "react-router-dom";
@@ -23,17 +23,119 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
   const completeOrder = useCompleteOrder();
   const navigate = useNavigate();
 
-  // Calculate totals including existing order items
+  // Group existing items by dish_id for display
+  const groupedOrderItems = useMemo(() => {
+    if (!existingOrderItems || existingOrderItems.length === 0) return [];
+
+    const grouped = new Map<number, {
+      dish_id: number;
+      dish_name: string;
+      dish_price: number;
+      total_quantity: number;
+      status_id: number;
+    }>();
+
+    existingOrderItems.forEach(item => {
+      const dishId = item.dish.id;
+      const existing = grouped.get(dishId);
+
+      if (existing) {
+        existing.total_quantity += item.quantity;
+        if (item.status_id > existing.status_id) {
+          existing.status_id = item.status_id;
+        }
+      } else {
+        grouped.set(dishId, {
+          dish_id: dishId,
+          dish_name: item.dish.name,
+          dish_price: parseFloat(item.dish.price.toString()),
+          total_quantity: item.quantity,
+          status_id: item.status_id,
+        });
+      }
+    });
+
+    return Array.from(grouped.values());
+  }, [existingOrderItems]);
+
+  // Calculate totals including grouped existing order items
   const cartTotal = getTotalPrice();
-  const existingTotal = existingOrderItems?.reduce(
-    (sum, item) => sum + parseFloat(item.dish.price.toString()) * item.quantity,
+  const existingTotal = groupedOrderItems.reduce(
+    (sum, group) => sum + group.dish_price * group.total_quantity,
     0
-  ) || 0;
+  );
   const total = cartTotal + existingTotal;
   const taxRate = 10;
   const tax = (total * taxRate) / 100;
   const totalPriceWithTax = total + tax;
-  const totalItems = (existingOrderItems?.length || 0) + cart.length;
+  const totalItems = groupedOrderItems.length + cart.length;
+
+  // Check if all existing order items are preparing (status_id === 2)
+  const allItemsReady = existingOrderItems?.every(item => item.status_id === 2) ?? true;
+
+  // Payment is only allowed when:
+  // 1. All existing order items are ready (status_id === 2)
+  // 2. AND there are NO new cart items (cart must be empty)
+  // This prevents payment when new items have just been added but not yet prepared
+  const canProcessPayment = allItemsReady && cart.length === 0 && activeOrder;
+
+  const handleAddToOrder = async () => {
+    if (!customer.table?.tableId) {
+      toast.warning("Please select a table!");
+      return;
+    }
+
+    if (cart.length === 0) {
+      toast.warning("No items to add!");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      let orderId: number;
+
+      // Step 1: Get or create order
+      if (!activeOrder) {
+        console.log("Creating new order for table:", customer.table.tableId);
+        const orderResponse = await createOrder.mutateAsync({
+          table_id: customer.table.tableId,
+          status_id: 1, // CREATED/PENDING
+        });
+        orderId = orderResponse.data.id;
+        console.log("Order created with ID:", orderId);
+      } else {
+        orderId = activeOrder.id;
+      }
+
+      // Step 2: Add cart items to the order
+      const orderItemPromises = cart.map(item => {
+        if (!item.dish_id) {
+          console.error("Cart item missing dish_id:", item);
+          throw new Error(`Cart item "${item.name}" is missing dish_id`);
+        }
+
+        return createOrderItem.mutateAsync({
+          order_id: orderId,
+          dish_id: item.dish_id,
+          quantity: item.quantity,
+          status_id: 1, // PENDING
+        });
+      });
+
+      await Promise.all(orderItemPromises);
+      console.log("All cart items added to order");
+
+      // Step 3: Clear cart and show success
+      clearCart();
+      toast.success(`Items added to Order #${orderId} successfully!`);
+    } catch (error: any) {
+      console.error("Error adding items to order:", error);
+      toast.error(`Failed to add items: ${error.message || "Unknown error"}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handlePrintReceipt = () => {
     if (totalItems === 0) {
@@ -48,13 +150,13 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
       return;
     }
 
-    // Combine existing items and cart items
+    // Combine grouped existing items and cart items
     const allItems = [
-      ...(existingOrderItems?.map(item => ({
-        name: item.dish.name,
-        quantity: item.quantity,
-        price: parseFloat(item.dish.price.toString()) * item.quantity
-      })) || []),
+      ...groupedOrderItems.map(group => ({
+        name: group.dish_name,
+        quantity: group.total_quantity,
+        price: group.dish_price * group.total_quantity
+      })),
       ...cart.map(item => ({
         name: item.name,
         quantity: item.quantity,
@@ -207,6 +309,16 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
       return;
     }
 
+    if (cart.length > 0) {
+      toast.warning("Cannot process payment! Please add new items to order first, then wait for them to be prepared.");
+      return;
+    }
+
+    if (!allItemsReady) {
+      toast.warning("Cannot process payment! All dishes must be ready (Preparing status) before payment.");
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -290,29 +402,53 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
         </h1>
       </div>
 
-      <div className="flex items-center gap-3 px-5 mt-4">
-        <button
-          onClick={handlePrintReceipt}
-          disabled={totalItems === 0}
-          className={`px-4 py-3 w-full rounded-lg font-semibold text-lg ${
-            totalItems === 0
-              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-[#025cca] text-[#f5f5f5] hover:bg-[#0250a8]"
-          }`}
-        >
-          Print Receipt
-        </button>
-        <button
-          onClick={handlePayment}
-          disabled={isProcessing || (!activeOrder && cart.length === 0)}
-          className={`px-4 py-3 w-full rounded-lg font-semibold text-lg ${
-            isProcessing || (!activeOrder && cart.length === 0)
-              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-[#f6b100] text-[#1f1f1f]"
-          }`}
-        >
-          {isProcessing ? "Processing..." : "Payment"}
-        </button>
+      <div className="flex flex-col gap-2 px-5 mt-4">
+        {/* Add to Order button (only show when cart has items) */}
+        {cart.length > 0 && (
+          <button
+            onClick={handleAddToOrder}
+            disabled={isProcessing}
+            className={`px-4 py-3 w-full rounded-lg font-semibold text-lg ${
+              isProcessing
+                ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                : "bg-[#02ca3a] text-[#1f1f1f] hover:bg-[#02b332]"
+            }`}
+          >
+            {isProcessing ? "Adding..." : "Add to Order"}
+          </button>
+        )}
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handlePrintReceipt}
+            disabled={totalItems === 0}
+            className={`px-4 py-3 w-full rounded-lg font-semibold text-lg ${
+              totalItems === 0
+                ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                : "bg-[#025cca] text-[#f5f5f5] hover:bg-[#0250a8]"
+            }`}
+          >
+            Print Receipt
+          </button>
+          <button
+            onClick={handlePayment}
+            disabled={isProcessing || !canProcessPayment}
+            className={`px-4 py-3 w-full rounded-lg font-semibold text-lg ${
+              isProcessing || !canProcessPayment
+                ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                : "bg-[#f6b100] text-[#1f1f1f]"
+            }`}
+            title={
+              cart.length > 0
+                ? "Add new items to order first"
+                : !allItemsReady
+                ? "All dishes must be ready before payment"
+                : ""
+            }
+          >
+            {isProcessing ? "Processing..." : "Payment"}
+          </button>
+        </div>
       </div>
     </>
   );

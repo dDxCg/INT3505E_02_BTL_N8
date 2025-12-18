@@ -48,10 +48,7 @@ export default function POSPage() {
   // Update POS store with table data from navigation
   useEffect(() => {
     if (tableData) {
-      updateTable({
-        tableId: tableData.tableId,
-        tableNo: tableData.tableNo,
-      });
+      updateTable(tableData.tableId, tableData.tableNo);
     }
   }, [tableData, updateTable]);
 
