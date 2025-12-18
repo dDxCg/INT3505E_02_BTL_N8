@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PaymentVNPayScreen from "./pages/PaymentUser/PaymentVNPayScreen";
+import PaymentVNPayCallback from "./pages/PaymentUser/PaymentVNPayCallback";
 
 import RequireAuth from "@/components/auth/RequireAuth";
 import LoginPage from "@/pages/auth/LoginPage";
@@ -59,6 +60,9 @@ function App() {
           {/* Feedback Routes - NO LAYOUT */}
           <Route path="/guest-display" element={<GuestDisplayPage />} />
           <Route path="/review" element={<ReviewPage />} />
+
+          {/* Payment Callback - NO LAYOUT */}
+          <Route path="/payment/vnpay/callback" element={<PaymentVNPayCallback />} />
 
           {/* Protected: Staff + Admin */}
           <Route element={<RequireAuth allowedRoles={["staff", "admin"]} />}>

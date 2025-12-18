@@ -27,14 +27,27 @@ router = APIRouter(prefix="/payments", tags=["Payments"])
 async def list_payments(
     booking_id: int | None = None,
     status_id: int | None = None,
+    request: Request = None,
     db: AsyncSession = Depends(get_db),
 ):
-    return await list_payments_repo(db, booking_id=booking_id, status_id=status_id)
+    payments = await list_payments_repo(db, booking_id=booking_id, status_id=status_id)
+
+    # Generate VNPay URLs for all payments
+    client_ip = request.client.host if request and request.client else "127.0.0.1"
+    for payment in payments:
+        payment.qr_url = build_vnpay_payment_url(
+            payment_id=payment.id,
+            amount=payment.amount,
+            client_ip=client_ip,
+        )
+
+    return payments
 
 
 @router.get("/{payment_id}", response_model=Payment)
 async def get_payment(
     payment_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     payment = await get_payment_repo(db, payment_id)
@@ -42,6 +55,15 @@ async def get_payment(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy Payment"
         )
+
+    # Generate VNPay URL for the payment
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    payment.qr_url = build_vnpay_payment_url(
+        payment_id=payment.id,
+        amount=payment.amount,
+        client_ip=client_ip,
+    )
+
     return payment
 
 

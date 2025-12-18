@@ -91,12 +91,10 @@ const CartInfo: React.FC<CartInfoProps> = ({ existingOrderItems }) => {
   // Handle updating quantity for grouped dishes
   const handleUpdateGroupQuantity = async (dishId: number, newQuantity: number, itemIds: number[]) => {
     if (newQuantity <= 0) {
-      toast.error("Quantity must be at least 1");
       return;
     }
 
     if (newQuantity > 20) {
-      toast.error("Maximum quantity is 20");
       return;
     }
 
@@ -143,10 +141,8 @@ const CartInfo: React.FC<CartInfoProps> = ({ existingOrderItems }) => {
         }
       }
 
-      toast.success("Quantity updated successfully");
     } catch (error) {
-      console.error("Failed to update quantity:", error);
-      toast.error("Failed to update quantity");
+      // Error handled silently
     }
   };
 
@@ -159,10 +155,8 @@ const CartInfo: React.FC<CartInfoProps> = ({ existingOrderItems }) => {
     try {
       // Delete all order items for this dish
       await Promise.all(itemIds.map(id => deleteOrderItem.mutateAsync(id)));
-      toast.success("Items removed successfully");
     } catch (error) {
-      console.error("Failed to delete items:", error);
-      toast.error("Failed to delete items");
+      // Error handled silently
     }
   };
 

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import QRCode from 'react-qr-code';
 import './PaymentVNPayScreen.css';
 import { toast } from "react-toastify";
 import { apiClient } from '@/api/client';
+import qrCodeImage from '@/assets/images/qr-code.png';
 
 type Payment = {
   id: number;
@@ -97,7 +97,7 @@ export default function PaymentVNPayScreen() {
         if (latest.status_id === SUCCESS_ID) {
           clearInterval(interval);
           toast.success(`Thanh toán bàn ${displayTableLabel} thành công!`);
-          navigate("/staff", { replace: true });
+          navigate("/review", { replace: true });
         }
       } catch (e) {
         console.error(e);
@@ -179,22 +179,28 @@ export default function PaymentVNPayScreen() {
 
             {loading && <p className="payvnp-qr-placeholder">Đang tạo yêu cầu thanh toán...</p>}
 
-            {payment?.qr_url && !loading && (
+            {payment && !loading && (
               <>
                 <div className="payvnp-qr-wrapper">
-                  <QRCode value={payment.qr_url} size={240} style={{width: '240px', height: '240px'}} />
+                  <img
+                    src={qrCodeImage}
+                    alt="VNPay QR Code"
+                    style={{width: '240px', height: '240px', objectFit: 'contain'}}
+                  />
                 </div>
                 <p className="payvnp-qr-hint">
                   Mở app Ngân hàng / Ví điện tử, chọn &quot;Quét mã VNPay&quot; để thanh toán.
                 </p>
-                <a
-                  href={payment.qr_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="payvnp-link"
-                >
-                  Hoặc mở trang VNPay
-                </a>
+                {payment.qr_url && (
+                  <a
+                    href={payment.qr_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="payvnp-link"
+                  >
+                    Hoặc mở trang VNPay
+                  </a>
+                )}
               </>
             )}
           </div>

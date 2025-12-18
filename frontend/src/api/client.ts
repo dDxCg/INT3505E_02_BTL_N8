@@ -73,21 +73,21 @@ apiClient.interceptors.response.use(
     // Enhanced error handling
     const errorMessage = handleApiError(error);
 
-    // Log errors in development
+    /* Log errors in development
     if (API_CONFIG.enableLogging) {
-      console.error('❌ API Error:', {
+      // console.error('❌ API Error:', {
         message: errorMessage,
         status: error.response?.status,
         url: error.config?.url,
         data: error.response?.data,
       });
-    }
+    } */
 
     // Show toast notification for errors (you can customize this)
-    if (API_CONFIG.environment !== 'test') {
-      // Don't show toasts in test environment
-      showErrorToast(error);
-    }
+    // Disabled to avoid showing error toasts in staff components
+    // if (API_CONFIG.environment !== 'test') {
+    //   showErrorToast(error);
+    // }
 
     return Promise.reject(error);
   }

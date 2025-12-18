@@ -2,10 +2,11 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.Order import Order as OrderModel
 from models.Payment import Payment as PaymentModel
+from models.Table import Table as TableModel
 from schemas.payments import (
     Payment,
     PaymentCreate,
@@ -20,6 +21,10 @@ PAYMENT_STATUS_SUCCESS = 2
 PAYMENT_STATUS_FAILED = 3
 PAYMENT_STATUS_EXPIRED = 4
 PAYMENT_STATUS_REFUNDED = 5
+
+# Table status constants
+TABLE_STATUS_AVAILABLE = 1
+TABLE_STATUS_SERVING = 2
 
 
 # --- Helpers ---
@@ -155,6 +160,14 @@ async def update_payment_status_repo(
         order = order_res.scalar_one_or_none()
         if order:
             order.status_id = 5  # completed
+
+            # Update table status to AVAILABLE when payment is successful
+            if target == PAYMENT_STATUS_SUCCESS and order.table_id:
+                await db.execute(
+                    update(TableModel)
+                    .where(TableModel.id == order.table_id)
+                    .values(status_id=TABLE_STATUS_AVAILABLE)
+                )
 
 
     if data.provider_transaction_id is not None:

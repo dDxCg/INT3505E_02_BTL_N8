@@ -9,59 +9,66 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import {
-  useTable,
-  useOrders,
-  useOrderItems,
-  useUpdateOrderItem,
-  useDeleteOrderItem,
-} from '../../hooks/useApi';
+  getTableById,
+  getOrderByTable,
+  getOrderItems,
+  updateItemStatus,
+  deleteOrderItem,
+
+} from '../../services/api';
 import type { TableRead, OrderRead, OrderItemRead } from '../../types/schema';
 import { toast } from 'react-toastify';
 
 export default function StaffTableDetail() {
   const { tableId } = useParams<{ tableId: string }>();
   const navigate = useNavigate();
-  const tableIdNum = tableId ? parseInt(tableId) : 0;
-
-
-  const ORDER_STATUS = { CREATED: 1, PREPARING: 2, READY: 3, SERVED: 4, COMPLETED: 5 } as const;
-  const ITEM_STATUS = { PREPARING: 1, READY: 2, SERVED: 3 } as const;
-
 
   // State
+  const [table, setTable] = useState<TableRead | null>(null);
+  const [activeOrder, setActiveOrder] = useState<OrderRead | null>(null);
+  const [orderItems, setOrderItems] = useState<OrderItemRead[]>([]);
+  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-  // Fetch table data
-  const { data: table, isLoading: tableLoading } = useTable(tableIdNum);
+  // ============================================
+  // DATA FETCHING
+  // ============================================
 
-  // Fetch orders for this table (status 1 or 2: pending/cooking)
-  const { data: ordersData, isLoading: ordersLoading } = useOrders(
-    { table_id: tableIdNum },
-    {
-      enabled: !!tableIdNum,
-      refetchInterval: 3000, // Auto-refresh every 3 seconds
+  const fetchTableData = async () => {
+    if (!tableId) return;
+
+    try {
+      const tableIdNum = parseInt(tableId);
+
+      // Fetch table info and active orders
+      const [tableData, orders] = await Promise.all([
+        getTableById(tableIdNum),
+        getOrderByTable(tableIdNum, 1), // status_id=1 (pending/active)
+      ]);
+
+      setTable(tableData);
+
+      if (orders.length > 0) {
+        const order = orders[0];
+        setActiveOrder(order);
+
+        // Fetch order items
+        const items = await getOrderItems(order.id);
+        setOrderItems(items);
+      } else {
+        setActiveOrder(null);
+        setOrderItems([]);
+      }
+    } catch (error) {
+      // Error handled silently
+    } finally {
+      setLoading(false);
     }
-  );
+  };
 
-  // Get the active order (status_id 1 or 2)
-  const activeOrder = ordersData?.find(order =>
-    order.status_id && order.status_id >= 1 && order.status_id <= 2
-  ) || null;
-
-  // Fetch order items if there's an active order
-  const { data: orderItems = [], isLoading: itemsLoading } = useOrderItems(
-    activeOrder ? { order_id: activeOrder.id } : undefined,
-    {
-      enabled: !!activeOrder,
-      refetchInterval: 3000, // Auto-refresh every 3 seconds
-    }
-  );
-
-  const loading = tableLoading || ordersLoading || itemsLoading;
-
-  // Mutations
-  const updateOrderItem = useUpdateOrderItem();
-  const deleteOrderItem = useDeleteOrderItem();
+  useEffect(() => {
+    fetchTableData();
+  }, [tableId]);
 
   // ============================================
   // HANDLERS
@@ -70,18 +77,24 @@ export default function StaffTableDetail() {
   const handleServeItem = async (itemId: number) => {
     try {
       setActionLoading(itemId);
-      await updateOrderItem.mutateAsync({
-        id: itemId,
-        data: { status_id: 2 } // 2 = Preparing/Served
-      });
-      toast.success('Đã lên món thành công');
+      await updateItemStatus(itemId, { status_id: 2 }); // 2 = Served
+      await fetchTableData(); // Refresh data
     } catch (error) {
-      console.error('Failed to serve item:', error);
-      toast.error('Không thể lên món. Vui lòng thử lại.');
+      // Error handled silently
     } finally {
       setActionLoading(null);
     }
   };
+
+
+
+
+
+
+
+
+
+
 
 
   const handleCancelItem = async (itemId: number) => {
@@ -89,50 +102,39 @@ export default function StaffTableDetail() {
 
     try {
       setActionLoading(itemId);
-      await deleteOrderItem.mutateAsync(itemId);
-      toast.success('Đã hủy món thành công');
+      await deleteOrderItem(itemId);
+      await fetchTableData(); // Refresh data
     } catch (error) {
-      console.error('Failed to cancel item:', error);
-      toast.error('Không thể hủy món. Vui lòng thử lại.');
+      // Error handled silently
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleGoToPayment = () => {
-  if (!table) return;
+    if (!table) return;
 
-  if (!activeOrder) {
-    toast.error("Bàn này chưa có order để thanh toán");
-    return;
-  }
+    if (!activeOrder) {
+      return;
+    }
 
-  // served = 4
-
-  
-  if (activeOrder.status_id !== 4) {
-    toast.warning("Chỉ thanh toán khi order ở trạng thái SERVED");
-    return;
-  }
-
-  // Đi sang màn QR VNPay (màn mới)
-  navigate("/staff/payment/vnpay", {
-    state: {
-      tableId: table.id,                 
-      tableNo: String(table.number),     
-      bookingId: activeOrder.id,         
-      amount: totalAmount,               
-    },
-  });
-};
-
-
+    // Navigate to POS screen where payment can be processed
+    navigate("/staff/pos", {
+      state: {
+        tableId: table.id,
+        tableNo: String(table.number),
+      },
+    });
+  };
   // ============================================
   // CALCULATIONS
   // ============================================
 
   const pendingItems = orderItems.filter((item) => item.status_id === 1);
   const servedItems = orderItems.filter((item) => item.status_id === 2);
+
+  // Check if all items are served
+  const allItemsServed = orderItems.length > 0 && orderItems.every(item => item.status_id === 2);
 
   const subtotal = orderItems.reduce(
     (sum, item) => sum + item.dish.price * item.quantity,
@@ -214,54 +216,80 @@ export default function StaffTableDetail() {
         </div>
       </header>
 
-      {/* Main Container - Edge-to-Edge Fluid Layout */}
-      <div className="lg:flex lg:min-h-screen bg-gray-50">
-        {/* LEFT COLUMN - Order List (70% Fluid, Expandable) */}
-        <div className="lg:flex-1 px-4 md:px-8 lg:px-12 xl:px-16 py-6 bg-white lg:bg-gray-50 overflow-y-auto">
-          {/* Desktop-Only Header Card - Full Width */}
-          <div className="hidden lg:block bg-white rounded-xl shadow-sm p-8 border border-gray-200 mb-6">
-            <button
-              onClick={() => navigate('/staff')}
-              className="mb-6 p-2 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="text-sm font-medium">Quay lại</span>
-            </button>
+      {/* Main Container - Full Width Edge-to-Edge Layout */}
+      <div className="px-4 md:px-6 lg:px-0 py-6 lg:py-0">
+        {!activeOrder ? (
+          // No Active Order - Full Width Edge-to-Edge
+          <div className="lg:h-[calc(100vh-5rem)]">
+            {/* Desktop-Only Header */}
+            <div className="hidden lg:block bg-white border-b border-gray-200 px-8 py-6">
+              <button
+                onClick={() => navigate('/staff')}
+                className="mb-4 p-2 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="text-sm font-medium">Quay lại</span>
+              </button>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900">Bàn #{table.number}</h1>
-                <p className="text-base text-gray-500 mt-2">{table.seats} chỗ ngồi</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Bàn #{table.number}</h1>
+                  <p className="text-sm text-gray-500 mt-1">{table.seats} chỗ ngồi</p>
+                </div>
+                <span className={`text-sm font-medium px-4 py-2 rounded-full ${tableStatus.color}`}>
+                  
+                </span>
               </div>
-              <span className={`text-base font-semibold px-6 py-3 rounded-full ${tableStatus.color}`}>
-                {tableStatus.label}
-              </span>
             </div>
-          </div>
 
-          {/* Order List Content */}
-          {!activeOrder ? (
-            // No Active Order - Full Width
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
-              <div className="text-8xl mb-6">🍽️</div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            {/* No Active Order - Full Width Empty State */}
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center lg:rounded-none lg:h-[calc(100%-6rem)] lg:flex lg:flex-col lg:items-center lg:justify-center lg:shadow-none">
+              <div className="text-6xl mb-4">🍽️</div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Bàn đang trống
               </h2>
               <p className="text-gray-600 text-lg">Chưa có order nào đang active</p>
             </div>
-          ) : (
-            <div className="space-y-4 max-w-5xl mx-auto">
-            {/* Pending Items Section */}
+          </div>
+        ) : (
+          // Active Order - Full Width Edge-to-Edge Liquid Layout
+          <div className="lg:flex lg:h-[calc(100vh-5rem)] lg:overflow-hidden gap-2">
+            {/* LEFT COLUMN - Order List (Flex-1 Expandable) */}
+            <div className="lg:flex-1 lg:overflow-y-auto space-y-6 lg:space-y-0">
+              {/* Desktop-Only Header */}
+              <div className="hidden lg:block bg-white border-b border-gray-200 px-8 py-6 sticky top-0 z-10">
+                <button
+                  onClick={() => navigate('/staff')}
+                  className="mb-4 p-2 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  <span className="text-sm font-medium">Quay lại</span>
+                </button>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Bàn #{table.number}</h1>
+                    <p className="text-sm text-gray-500 mt-1">{table.seats} chỗ ngồi</p>
+                  </div>
+                  <span className={`text-sm font-medium px-4 py-2 rounded-full ${tableStatus.color}`}>
+                    {tableStatus.label}
+                  </span>
+                </div>
+              </div>
+
+              {/* Order List Content */}
+              <div className="space-y-6 lg:px-8 lg:py-6 lg:pb-8">
+                {/* Pending Items Section */}
             {pendingItems.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
                   Cần xử lý ({pendingItems.length} món)
                 </h2>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {pendingItems.map((item) => (
                     <div
                       key={item.id}
-                      className="bg-white p-4 rounded-xl shadow-sm mb-2 border-l-4 border-orange-500"
+                      className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-orange-500 hover:shadow-md transition-shadow"
                     >
                       {/* Item Info */}
                       <div className="flex items-start justify-between mb-3">
@@ -317,14 +345,14 @@ export default function StaffTableDetail() {
             {/* Served Items Section */}
             {servedItems.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+                <h2 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
                   Đã phục vụ ({servedItems.length} món)
                 </h2>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {servedItems.map((item) => (
                     <div
                       key={item.id}
-                      className="bg-white p-4 rounded-xl shadow-sm mb-2 border border-gray-200 opacity-60"
+                      className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-green-500 opacity-75 hover:opacity-100 transition-opacity"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -351,140 +379,94 @@ export default function StaffTableDetail() {
               </div>
             )}
 
-              </div>
-            )}
-
-            {/* Empty State When Order Exists But No Items - Full Width */}
-            {activeOrder && pendingItems.length === 0 && servedItems.length === 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-12 text-center min-h-[60vh] flex flex-col items-center justify-center">
-                <div className="text-8xl mb-6">📋</div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                  Chưa có món nào
-                </h2>
-                <p className="text-gray-600 text-lg">
-                  Order đã tạo nhưng chưa có món được gọi
-                </p>
-              </div>
-            )}
-        </div>
-
-        {/* RIGHT COLUMN - Invoice Sidebar (30% Fixed, Anchored Right Edge) */}
-        {activeOrder && orderItems.length > 0 && (
-          <div className="hidden lg:flex lg:flex-col lg:w-[30%] lg:max-w-[600px] lg:min-w-[450px] bg-gradient-to-b from-gray-50 to-gray-100 border-l-4 border-red-200 shadow-[-8px_0_24px_rgba(0,0,0,0.12)] h-screen overflow-y-auto">
-            <div className="p-8">
-                {/* Invoice Card - Receipt Style */}
-                <div className="bg-white rounded-xl shadow-xl border border-gray-300 overflow-hidden">
-                  {/* Header */}
-                  <div className="bg-gradient-to-r from-red-600 to-red-700 px-8 py-6">
-                    <h2 className="text-2xl font-bold text-white mb-2">Hóa đơn</h2>
-                    <div className="flex items-center justify-between text-red-50 text-sm">
-                      <span>Bàn #{table.number}</span>
-                      <span>{orderItems.length} món</span>
-                    </div>
+                {/* Empty State */}
+                {pendingItems.length === 0 && servedItems.length === 0 && (
+                  <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                    <div className="text-6xl mb-4">📋</div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">
+                      Chưa có món nào
+                    </h2>
+                    <p className="text-gray-600">
+                      Order đã tạo nhưng chưa có món được gọi
+                    </p>
                   </div>
+                )}
+              </div>
+            </div>
 
-                  {/* Order Items - Receipt Style List - Takes 60% of Available Space */}
-                  <div className="px-8 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-500" style={{ minHeight: '45vh', maxHeight: 'calc(100vh - 500px)' }}>
-                    <div className="space-y-5 pr-2">
-                      {orderItems.map((item, index) => (
-                        <div
-                          key={item.id}
-                          className="pb-6 mb-2 border-b-2 border-gray-200 last:border-b-0"
-                        >
-                          {/* Item Header */}
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-gray-400 font-mono text-sm">#{index + 1}</span>
-                                <h3 className="font-bold text-gray-900 text-base">{item.dish.name}</h3>
-                              </div>
-                              {/* Status Badge */}
-                              <div className="flex items-center gap-2 mt-2">
-                                {item.status_id === 1 ? (
-                                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
-                                    <AlertCircle className="w-3 h-3" />
-                                    Chờ xử lý
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                                    <Check className="w-3 h-3" />
-                                    Đã phục vụ
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+          {/* RIGHT COLUMN - Invoice Card (Fixed Width, Docked Right) */}
+          {activeOrder && orderItems.length > 0 && (
+            <div className="hidden lg:block lg:w-[420px] lg:flex-shrink-0 lg:border-l lg:border-gray-200 lg:overflow-y-auto">
+              <div className="bg-white h-full">
+                <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
+                  <h2 className="text-xl font-bold text-gray-900">Hóa đơn</h2>
+                </div>
+                <div className="p-6 space-y-6">
 
-                          {/* Price Calculation */}
-                          <div className="mt-4 bg-gray-50 rounded-lg p-4">
-                            <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
-                              <span>Đơn giá</span>
-                              <span className="font-mono">{formatPrice(item.dish.price)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm text-gray-600 mb-3">
-                              <span>Số lượng</span>
-                              <span className="font-mono">× {item.quantity}</span>
-                            </div>
-                            <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-                              <span className="font-semibold text-gray-900">Thành tiền</span>
-                              <span className="font-bold text-lg text-gray-900 font-mono">
-                                {formatPrice(item.dish.price * item.quantity)}
-                              </span>
-                            </div>
+                  {/* Order Items Summary */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+                      Chi tiết đơn hàng
+                    </h3>
+                    <div className="space-y-3 max-h-[calc(100vh-32rem)] overflow-y-auto pr-2">
+                      {orderItems.map((item) => (
+                        <div key={item.id} className="flex justify-between items-start text-sm pb-3 border-b border-gray-100 last:border-b-0">
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900 leading-tight">{item.dish.name}</p>
+                            <p className="text-gray-500 text-xs mt-1">
+                              {formatPrice(item.dish.price)} × {item.quantity}
+                            </p>
                           </div>
+                          <p className="font-semibold text-gray-900 ml-3">
+                            {formatPrice(item.dish.price * item.quantity)}
+                          </p>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Summary Section - Compact */}
-                  <div className="px-8 py-5 bg-gray-50 border-t-2 border-gray-200">
-                    {/* Summary Stats Row - Inline Centered */}
-                    <div className="flex items-center justify-center gap-8 mb-5 pb-4 border-b border-gray-200">
-                      <div className="text-center">
-                        <p className="text-xs text-blue-600 font-medium mb-1">Tổng món</p>
-                        <p className="text-2xl font-bold text-blue-700">{orderItems.length}</p>
-                      </div>
-                      <div className="h-12 w-px bg-gray-300"></div>
-                      <div className="text-center">
-                        <p className="text-xs text-orange-600 font-medium mb-1">Chờ xử lý</p>
-                        <p className="text-2xl font-bold text-orange-700">{pendingItems.length}</p>
-                      </div>
+                  {/* Breakdown Section */}
+                  <div className="border-t-2 border-gray-200 pt-6 space-y-3">
+                    {/* Subtotal */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Tạm tính</span>
+                      <span className="font-medium text-gray-900">{formatPrice(subtotal)}</span>
                     </div>
 
-                    {/* Pricing Breakdown */}
-                    <div className="space-y-2.5">
-                      <div className="flex justify-between items-center text-base">
-                        <span className="text-gray-600 font-medium">Tạm tính</span>
-                        <span className="font-semibold text-gray-900 font-mono">{formatPrice(subtotal)}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-base">
-                        <span className="text-gray-600 font-medium">VAT (10%)</span>
-                        <span className="font-semibold text-gray-900 font-mono">{formatPrice(taxAmount)}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-3 mt-3 border-t-2 border-gray-300">
-                        <span className="text-lg font-bold text-gray-900">Tổng cộng</span>
-                        <span className="text-3xl font-bold text-red-600 font-mono">
-                          {formatPrice(totalAmount)}
-                        </span>
-                      </div>
+                    {/* Tax */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">VAT (10%)</span>
+                      <span className="font-medium text-gray-900">{formatPrice(taxAmount)}</span>
+                    </div>
+
+                    {/* Total */}
+                    <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                      <span className="text-base font-semibold text-gray-700">Tổng cộng</span>
+                      <span className="text-3xl font-bold text-red-600">
+                        {formatPrice(totalAmount)}
+                      </span>
                     </div>
                   </div>
 
                   {/* Action Button */}
-                  <div className="px-8 py-6">
-                    <button
-                      onClick={handleGoToPayment}
-                      className="w-full px-8 py-5 bg-red-600 text-white rounded-xl font-bold text-xl hover:bg-red-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 active:scale-95"
-                    >
-                      <Printer className="w-6 h-6" />
-                      Đi đến thanh toán
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleGoToPayment}
+                    disabled={!allItemsServed}
+                    className={`w-full px-6 py-4 text-white rounded-xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-3 ${
+                      allItemsServed
+                        ? 'bg-red-600 hover:bg-red-700 hover:shadow-xl cursor-pointer'
+                        : 'bg-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <Printer className="w-5 h-5" />
+                    Đi đến thanh toán
+                  </button>
                 </div>
               </div>
             </div>
           )}
+          </div>
+        )}
       </div>
 
       {/* Mobile-Only Sticky Payment Footer */}
@@ -512,7 +494,12 @@ export default function StaffTableDetail() {
 
               <button
                 onClick={handleGoToPayment}
-                className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-base hover:bg-red-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                disabled={!allItemsServed}
+                className={`px-6 py-3 text-white rounded-xl font-bold text-base transition-all shadow-lg flex items-center gap-2 ${
+                  allItemsServed
+                    ? 'bg-red-600 hover:bg-red-700 hover:shadow-xl cursor-pointer'
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
               >
                 <Printer className="w-5 h-5" />
                 <span>Thanh toán</span>
