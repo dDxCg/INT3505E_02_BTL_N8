@@ -16,9 +16,11 @@ from .booking.OrderStatus import router as order_statuses_router
 from .booking.OrderItemStatus import router as order_items_statuses_router
 
 from .feedback.Feedback import router as feedback_router
+from .user.auth import router as auth_router
 
 
 all_v1_routers = [
+    auth_router,
     dish_router,
     tag_router,
     tables_router,
