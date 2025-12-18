@@ -31,7 +31,6 @@ const BottomNav: React.FC = () => {
 
   const handleCreateOrder = () => {
     // TODO: Dispatch to Zustand store instead of Redux
-    console.log("Create order:", { name, phone, guests: guestCount });
     navigate("/staff/tables");
   };
 

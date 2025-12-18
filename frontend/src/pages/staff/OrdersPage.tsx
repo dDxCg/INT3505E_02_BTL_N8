@@ -83,13 +83,6 @@ const OrdersPage: React.FC = () => {
     document.title = "POS | Orders";
   }, []);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("OrdersPage - Status filter:", status);
-    console.log("OrdersPage - Status ID:", statusId);
-    console.log("OrdersPage - Orders data:", ordersData);
-  }, [status, statusId, ordersData]);
-
   // Loading state
   if (isLoading) {
     return (

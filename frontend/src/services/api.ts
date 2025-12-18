@@ -1,6 +1,6 @@
 /**
  * API Services - Khớp 100% với Backend FastAPI Endpoints
- * Base URL: http://localhost:8000/api/v1
+ * Base URL: Configured via VITE_API_URL environment variable
  */
 
 import axios from 'axios';

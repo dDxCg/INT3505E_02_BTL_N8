@@ -18,7 +18,7 @@ interface WebSocketMessage {
  * Custom hook for WebSocket connection to backend
  * Automatically invalidates React Query caches when events are received
  *
- * Backend WebSocket endpoint: ws://localhost:8000/ws
+ * Backend WebSocket endpoint: Derived from VITE_API_URL environment variable
  * Events are broadcast from backend/ws/EventBus.py
  */
 export const useWebSocket = () => {

@@ -73,20 +73,12 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
   // Check if all existing order items are preparing (status_id === 2)
   const allItemsReady = existingOrderItems?.every(item => item.status_id === 2) ?? true;
 
-  // Payment is only allowed when:
-  // 1. All existing order items are ready (status_id === 2)
-  // 2. AND there are NO new cart items (cart must be empty)
-  // This prevents payment when new items have just been added but not yet prepared
-  const canProcessPayment = allItemsReady && cart.length === 0 && activeOrder;
-
   const handleAddToOrder = async () => {
     if (!customer.table?.tableId) {
-      toast.warning("Please select a table!");
       return;
     }
 
     if (cart.length === 0) {
-      toast.warning("No items to add!");
       return;
     }
 
@@ -97,13 +89,11 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
 
       // Step 1: Get or create order
       if (!activeOrder) {
-        console.log("Creating new order for table:", customer.table.tableId);
         const orderResponse = await createOrder.mutateAsync({
           table_id: customer.table.tableId,
           status_id: 1, // CREATED/PENDING
         });
         orderId = orderResponse.data.id;
-        console.log("Order created with ID:", orderId);
       } else {
         orderId = activeOrder.id;
       }
@@ -111,7 +101,6 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
       // Step 2: Add cart items to the order
       const orderItemPromises = cart.map(item => {
         if (!item.dish_id) {
-          console.error("Cart item missing dish_id:", item);
           throw new Error(`Cart item "${item.name}" is missing dish_id`);
         }
 
@@ -124,14 +113,11 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
       });
 
       await Promise.all(orderItemPromises);
-      console.log("All cart items added to order");
 
-      // Step 3: Clear cart and show success
+      // Step 3: Clear cart
       clearCart();
-      toast.success(`Items added to Order #${orderId} successfully!`);
     } catch (error: any) {
-      console.error("Error adding items to order:", error);
-      toast.error(`Failed to add items: ${error.message || "Unknown error"}`);
+      // Error handled silently
     } finally {
       setIsProcessing(false);
     }
@@ -139,14 +125,12 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
 
   const handlePrintReceipt = () => {
     if (totalItems === 0) {
-      toast.warning("No items to print!");
       return;
     }
 
     // Generate receipt HTML
     const receiptWindow = window.open('', '_blank');
     if (!receiptWindow) {
-      toast.error("Please allow popups to print receipt");
       return;
     }
 
@@ -298,82 +282,77 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
     receiptWindow.document.close();
   };
 
-  const handlePayment = async () => {
+  const handlePayment = () => {
     if (!customer.table?.tableId) {
-      toast.warning("Please select a table!");
       return;
     }
 
-    if (!activeOrder && cart.length === 0) {
-      toast.warning("No items to process payment!");
+    if (!activeOrder) {
       return;
     }
 
     if (cart.length > 0) {
-      toast.warning("Cannot process payment! Please add new items to order first, then wait for them to be prepared.");
       return;
     }
 
+    // Check if there are any order items
+    if (!existingOrderItems || existingOrderItems.length === 0) {
+      return;
+    }
+
+    // Check if ALL order items are served (status_id = 2)
     if (!allItemsReady) {
-      toast.warning("Cannot process payment! All dishes must be ready (Preparing status) before payment.");
+      return;
+    }
+
+    // Navigate to VNPay payment screen
+    navigate("/staff/payment/vnpay", {
+      state: {
+        tableId: customer.table.tableId,
+        tableLabel: customer.table.tableNo,
+        bookingId: activeOrder.id,
+        amount: totalPriceWithTax,
+      },
+    });
+  };
+
+  const handleCashPayment = async () => {
+    if (!customer.table?.tableId) {
+      return;
+    }
+
+    if (!activeOrder) {
+      return;
+    }
+
+    if (cart.length > 0) {
+      return;
+    }
+
+    // Check if there are any order items
+    if (!existingOrderItems || existingOrderItems.length === 0) {
+      return;
+    }
+
+    // Check if ALL order items are served (status_id = 2)
+    if (!allItemsReady) {
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      let orderId: number;
+      // Complete the order directly (cash payment)
+      await completeOrder.mutateAsync(activeOrder.id);
 
-      // Step 1: If there are cart items and no active order, create new order
-      if (!activeOrder && cart.length > 0) {
-        console.log("Creating new order for table:", customer.table.tableId);
-        const orderResponse = await createOrder.mutateAsync({
-          table_id: customer.table.tableId,
-          status_id: 1, // PENDING
-        });
-        orderId = orderResponse.data.id;
-        console.log("Order created with ID:", orderId);
-      } else if (activeOrder) {
-        orderId = activeOrder.id;
-      } else {
-        throw new Error("No order to process");
-      }
+      toast.success('Thanh toán bằng tiền mặt thành công!');
 
-      // Step 2: Add any new cart items to the order
-      if (cart.length > 0) {
-        const orderItemPromises = cart.map(item => {
-          if (!item.dish_id) {
-            console.error("Cart item missing dish_id:", item);
-            throw new Error(`Cart item "${item.name}" is missing dish_id`);
-          }
-
-          return createOrderItem.mutateAsync({
-            order_id: orderId,
-            dish_id: item.dish_id,
-            quantity: item.quantity,
-            status_id: 1, // PENDING
-          });
-        });
-
-        await Promise.all(orderItemPromises);
-        console.log("All cart items added to order");
-      }
-
-      // Step 3: Complete order (sets status to COMPLETED and frees table)
-      await completeOrder.mutateAsync(orderId);
-      console.log("Order completed and table freed");
-
-      // Step 4: Clear cart and show success
-      clearCart();
-      toast.success(`Payment completed successfully! Order #${orderId} | Total: ${totalPriceWithTax.toLocaleString('vi-VN')}₫`, {
-        autoClose: 5000
-      });
-
-      // Navigate to tables page
-      navigate(`/staff/tables`);
+      // Navigate to review page after a short delay
+      setTimeout(() => {
+        navigate('/review', { replace: true });
+      }, 1000);
     } catch (error: any) {
-      console.error("Error processing payment:", error);
-      toast.error(`Failed to process payment: ${error.message || "Unknown error"}. Please check the console for details.`);
+      // Error handled silently
     } finally {
       setIsProcessing(false);
     }
@@ -430,23 +409,32 @@ const Bill: React.FC<BillProps> = ({ activeOrder, existingOrderItems }) => {
           >
             Print Receipt
           </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleCashPayment}
+            disabled={!activeOrder || isProcessing}
+            className={`px-4 py-3 w-full rounded-lg font-semibold text-lg ${
+              !activeOrder || isProcessing
+                ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                : "bg-[#02ca3a] text-[#1f1f1f] hover:bg-[#02b332]"
+            }`}
+            title={!activeOrder ? "No active order" : "Complete payment with cash"}
+          >
+            {isProcessing ? "Processing..." : "Cash"}
+          </button>
           <button
             onClick={handlePayment}
-            disabled={isProcessing || !canProcessPayment}
+            disabled={!activeOrder || isProcessing}
             className={`px-4 py-3 w-full rounded-lg font-semibold text-lg ${
-              isProcessing || !canProcessPayment
+              !activeOrder || isProcessing
                 ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-                : "bg-[#f6b100] text-[#1f1f1f]"
+                : "bg-[#f6b100] text-[#1f1f1f] hover:bg-[#e0a000]"
             }`}
-            title={
-              cart.length > 0
-                ? "Add new items to order first"
-                : !allItemsReady
-                ? "All dishes must be ready before payment"
-                : ""
-            }
+            title={!activeOrder ? "No active order" : "Go to payment"}
           >
-            {isProcessing ? "Processing..." : "Payment"}
+            Payment
           </button>
         </div>
       </div>

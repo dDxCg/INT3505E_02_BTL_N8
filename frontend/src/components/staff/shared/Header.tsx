@@ -20,7 +20,6 @@ const Header: React.FC<HeaderProps> = ({
   const handleLogout = () => {
     // nếu StaffLayout truyền onLogout thì xử lý logout thật ở đó
     if (onLogout) return onLogout();
-    console.warn("onLogout is not provided");
   };
 
   return (

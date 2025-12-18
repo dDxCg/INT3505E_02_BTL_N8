@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import QRCode from 'react-qr-code';
 import './PaymentVNPayScreen.css';
 import { toast } from "react-toastify";
-
+import { apiClient } from '@/api/client';
+import qrCodeImage from '@/assets/images/qr-code.png';
 
 type Payment = {
   id: number;
@@ -23,9 +23,6 @@ type PaymentScreenState = {
   tableLabel: string;     
   amount: number;         
 };
-
-
-const API_BASE = 'http://localhost:8000/api/v1'; // nếu có sẵn env thì dùng env
 
 function formatCurrency(amount: number, currency: string) {
   if (currency === 'VND') {
@@ -56,34 +53,25 @@ export default function PaymentVNPayScreen() {
 
   const createPayment = async () => {
     if (!bookingId || !amount) {
-  setError('Thiếu bookingId/amount (đi sai flow)');
-  return;
-}
+      setError('Thiếu bookingId/amount (đi sai flow)');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch(`${API_BASE}/payments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          booking_id: bookingId,
-          currency: 'VND',
-          amount,
-          method_id: 2, // bank / e-wallet
-          provider_id: 2, // VNPAY
-        }),
+      const response = await apiClient.post('/payments', {
+        booking_id: bookingId,
+        currency: 'VND',
+        amount,
+        method_id: 2, // bank / e-wallet
+        provider_id: 2, // VNPAY
       });
 
-      if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status}`);
-      }
-
-      const data = (await resp.json()) as Payment;
+      const data = response.data as Payment;
       setPayment(data);
     } catch (err: any) {
-      setError(err.message ?? 'Có lỗi xảy ra khi tạo thanh toán');
+      const errorMsg = err.response?.data?.detail || err.message || 'Có lỗi xảy ra khi tạo thanh toán';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -99,10 +87,8 @@ export default function PaymentVNPayScreen() {
 
     const interval = setInterval(async () => {
       try {
-        const resp = await fetch(`${API_BASE}/payments/${payment.id}`);
-        if (!resp.ok) return;
-
-        const latest: Payment = await resp.json();
+        const response = await apiClient.get(`/payments/${payment.id}`);
+        const latest: Payment = response.data;
         setPayment(latest);
 
         // TODO: đổi số này theo payment_statuses
@@ -111,7 +97,7 @@ export default function PaymentVNPayScreen() {
         if (latest.status_id === SUCCESS_ID) {
           clearInterval(interval);
           toast.success(`Thanh toán bàn ${displayTableLabel} thành công!`);
-          navigate("/staff", { replace: true });
+          navigate("/review", { replace: true });
         }
       } catch (e) {
         console.error(e);
@@ -193,22 +179,28 @@ export default function PaymentVNPayScreen() {
 
             {loading && <p className="payvnp-qr-placeholder">Đang tạo yêu cầu thanh toán...</p>}
 
-            {payment?.qr_url && !loading && (
+            {payment && !loading && (
               <>
                 <div className="payvnp-qr-wrapper">
-                  <QRCode value={payment.qr_url} size={240} style={{width: '240px', height: '240px'}} />
+                  <img
+                    src={qrCodeImage}
+                    alt="VNPay QR Code"
+                    style={{width: '240px', height: '240px', objectFit: 'contain'}}
+                  />
                 </div>
                 <p className="payvnp-qr-hint">
                   Mở app Ngân hàng / Ví điện tử, chọn &quot;Quét mã VNPay&quot; để thanh toán.
                 </p>
-                <a
-                  href={payment.qr_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="payvnp-link"
-                >
-                  Hoặc mở trang VNPay
-                </a>
+                {payment.qr_url && (
+                  <a
+                    href={payment.qr_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="payvnp-link"
+                  >
+                    Hoặc mở trang VNPay
+                  </a>
+                )}
               </>
             )}
           </div>
