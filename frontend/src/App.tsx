@@ -1,12 +1,9 @@
-// frontend/src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import PaymentUserScreen from "./pages/PaymentUser/PaymentUserScreen";
 import PaymentVNPayScreen from "./pages/PaymentUser/PaymentVNPayScreen";
-
-import RequireAuth from "@/components/auth/RequireAuth";
-import LoginPage from "@/pages/auth/LoginPage";
 
 // Guest Pages
 import GuestOrderPage from "./pages/guest";
@@ -24,8 +21,9 @@ import StaffLayout from "./components/staff/shared/StaffLayout";
 
 // Admin Page
 import AdminPage from "@/pages/Admin/Admin";
+import AuthPage from "./pages/Auth/AuthPage";
 
-// Feedback Pages
+// Review Page
 import ReviewPage from "./pages/Feedback/ReviewPage";
 import GuestDisplayPage from "./pages/Feedback/GuestDisplayPage";
 
@@ -78,7 +76,8 @@ function App() {
           </Route>
 
           {/* 404 */}
-          <Route path="*" element={<Navigate to="/staff" replace />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
+          <Route path="/auth" element={<AuthPage />} />
         </Routes>
       </BrowserRouter>
 
