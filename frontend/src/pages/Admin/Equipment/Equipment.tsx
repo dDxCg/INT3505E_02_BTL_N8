@@ -4,6 +4,7 @@ import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
+import { apiClient } from "@/api/client";
 
 interface Equipment {
   id: number;
@@ -33,13 +34,13 @@ const formFields: FormField<Equipment>[] = [
     key: "status_id",
     label: "Status",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/equipment-statuses",
+    fetchUrl: "/resources/equipment-statuses",
   },
   {
     key: "type_id",
     label: "Type",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/equipment-types",
+    fetchUrl: "/resources/equipment-types",
   },
 ];
 
@@ -49,13 +50,13 @@ const fields: FilterField[] = [
     key: "status",
     label: "Status",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/equipment-statuses",
+    fetchUrl: "/resources/equipment-statuses",
   },
   {
     key: "type",
     label: "Type",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/equipment-types",
+    fetchUrl: "/resources/equipment-types",
   },
 ];
 
@@ -75,10 +76,9 @@ const EquipmentPage: React.FC = () => {
 
   const handleFetchOptions = async (key: string, url: string) => {
     try {
-      const res = await fetch(url);
-      const body = await res.json();
+      const res = await apiClient.get(url);
 
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
 
       const options = items.map((item: any) => ({
         label: item.name ?? item.status ?? String(item),
@@ -99,7 +99,6 @@ const EquipmentPage: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       setLoading(true);
 
@@ -119,20 +118,17 @@ const EquipmentPage: React.FC = () => {
       }
 
       const query = params.toString();
-      const url = `${apiUrl}/v1/resources/equipments${
-        query ? "?" + query : ""
-      }`;
+      const url = `/resources/equipments${query ? "?" + query : ""}`;
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await apiClient.get(url);
 
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setEquipments(items);
       setError(null);
     } catch (err: any) {
       console.error("Search failed:", err);
-      setError(err.message);
+      const errorMsg = err.response?.data?.detail || err.message || "Search failed";
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -146,49 +142,33 @@ const EquipmentPage: React.FC = () => {
   const handleDelete = async (row: any) => {
     if (!window.confirm("Delete this equipment?")) return;
 
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/resources/equipments/${row.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await apiClient.delete(`/resources/equipments/${row.id}`);
       // Refetch after delete
       await fetchEquipments();
     } catch (err: any) {
       console.error("Delete failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Delete failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
   const handleFormSubmit = async (data: Partial<Equipment>) => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       if (editingEquipment?.id) {
         // PUT: Update existing equipment
-        const res = await fetch(
-          `${apiUrl}/v1/resources/equipments/${editingEquipment.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.put(`/resources/equipments/${editingEquipment.id}`, data);
       } else {
         // POST: Create new equipment
-        const res = await fetch(`${apiUrl}/v1/resources/equipments`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.post(`/resources/equipments`, data);
       }
       closeForm();
       // Refetch the full list after add or update
       await fetchEquipments();
     } catch (err: any) {
       console.error("Form submission failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Form submission failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
@@ -204,11 +184,8 @@ const EquipmentPage: React.FC = () => {
 
   const fetchEquipments = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:8000/api/v1/resources/equipments"
-      );
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get("/resources/equipments");
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setEquipments(items);
     } catch (err) {
       console.error("fetch all equipments fail:", err);

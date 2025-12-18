@@ -4,6 +4,7 @@ import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
+import { apiClient } from "@/api/client";
 
 interface Ingredient {
   id: number;
@@ -33,7 +34,7 @@ const formFields: FormField<Ingredient>[] = [
     key: "unit_id",
     label: "Unit",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/ingredient-units",
+    fetchUrl: "/resources/ingredient-units",
   },
 ];
 
@@ -45,7 +46,7 @@ const fields: FilterField[] = [
     key: "unit",
     label: "Unit",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/resources/ingredient-units",
+    fetchUrl: "/resources/ingredient-units",
   },
 ];
 
@@ -63,8 +64,8 @@ const IngredientPage: React.FC = () => {
 
   const handleFetchOptions = async (key: string, url: string) => {
     try {
-      const res = await fetch(url);
-      const body = await res.json();
+      const res = await apiClient.get(url);
+      const body = res.data;
       const items = Array.isArray(body) ? body : body.data ?? [];
 
       const options = items.map((item: any) => ({
@@ -84,27 +85,20 @@ const IngredientPage: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const params = new URLSearchParams();
-      if (values.name) params.append("name", values.name);
-      if (values.quantity) params.append("quantity", values.quantity);
-      if (values.threshold) params.append("threshold", values.threshold);
-      if (values.unit) params.append("unit_id", values.unit);
+      const params: Record<string, string> = {};
+      if (values.name) params.name = values.name;
+      if (values.quantity) params.quantity = values.quantity;
+      if (values.threshold) params.threshold = values.threshold;
+      if (values.unit) params.unit_id = values.unit;
 
-      const query = params.toString();
-      const url = `${apiUrl}/v1/resources/ingredients${
-        query ? "?" + query : ""
-      }`;
-
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
+      const res = await apiClient.get("/resources/ingredients", { params });
+      const body = res.data;
       const items = Array.isArray(body) ? body : body.data ?? [];
       setIngredients(items);
     } catch (err: any) {
       console.error("Search failed:", err);
-      alert(`Error: ${err.message}`);
+      alert(`Error: ${err.message || "Search failed"}`);
     }
   };
 
@@ -115,47 +109,29 @@ const IngredientPage: React.FC = () => {
   const handleDelete = async (row: any) => {
     if (!window.confirm("Delete this ingredient?")) return;
 
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/resources/ingredients/${row.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await apiClient.delete(`/resources/ingredients/${row.id}`);
       await fetchIngredients();
     } catch (err: any) {
       console.error("Delete failed:", err);
-      alert(`Error: ${err.message}`);
+      alert(`Error: ${err.message || "Delete failed"}`);
     }
   };
 
   const handleFormSubmit = async (data: Partial<Ingredient>) => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       if (editingIngredient?.id) {
         // PUT: Update
-        const res = await fetch(
-          `${apiUrl}/v1/resources/ingredients/${editingIngredient.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.put(`/resources/ingredients/${editingIngredient.id}`, data);
       } else {
         // POST: Create
-        const res = await fetch(`${apiUrl}/v1/resources/ingredients`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.post("/resources/ingredients", data);
       }
       closeForm();
       await fetchIngredients();
     } catch (err: any) {
       console.error("Form submission failed:", err);
-      alert(`Error: ${err.message}`);
+      alert(`Error: ${err.message || "Form submission failed"}`);
     }
   };
 
@@ -174,10 +150,8 @@ const IngredientPage: React.FC = () => {
 
   const fetchIngredients = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:8000/api/v1/resources/ingredients"
-      );
-      const body = await res.json();
+      const res = await apiClient.get("/resources/ingredients");
+      const body = res.data;
       const items = Array.isArray(body) ? body : body.data ?? [];
       setIngredients(items);
     } catch (err) {

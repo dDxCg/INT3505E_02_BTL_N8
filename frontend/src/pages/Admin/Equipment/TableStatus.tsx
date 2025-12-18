@@ -4,6 +4,7 @@ import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
+import { apiClient } from "@/api/client";
 
 interface TableStatus {
   id: number;
@@ -31,9 +32,8 @@ const TableStatusPage: React.FC = () => {
 
   const handleFetchOptions = async (key: string, url: string) => {
     try {
-      const res = await fetch(url);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(url);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
 
       const options = items.map((item: any) => ({
         label: item.status ?? String(item),
@@ -52,22 +52,20 @@ const TableStatusPage: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       const params = new URLSearchParams();
       if (values.status) params.append("status", values.status);
 
       const query = params.toString();
-      const url = `${apiUrl}/v1/tables/statuses${query ? "?" + query : ""}`;
+      const url = `/tables/statuses${query ? "?" + query : ""}`;
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(url);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setTableStatuses(items);
     } catch (err: any) {
       console.error("Search failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Search failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
@@ -78,47 +76,31 @@ const TableStatusPage: React.FC = () => {
   const handleDelete = async (row: any) => {
     if (!window.confirm("Delete this table status?")) return;
 
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/tables/statuses/${row.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await apiClient.delete(`/tables/statuses/${row.id}`);
       await fetchTableStatuses();
     } catch (err: any) {
       console.error("Delete failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Delete failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
   const handleFormSubmit = async (data: Partial<TableStatus>) => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       if (editingTableStatus?.id) {
         // PUT: Update
-        const res = await fetch(
-          `${apiUrl}/v1/tables-statuses/${editingTableStatus.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.put(`/tables-statuses/${editingTableStatus.id}`, data);
       } else {
         // POST: Create
-        const res = await fetch(`${apiUrl}/v1/tables-statuses`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.post(`/tables-statuses`, data);
       }
       closeForm();
       await fetchTableStatuses();
     } catch (err: any) {
       console.error("Form submission failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Form submission failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
@@ -137,16 +119,14 @@ const TableStatusPage: React.FC = () => {
   };
 
   const fetchTableStatuses = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/tables-statuses`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(`/tables-statuses`);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setTableStatuses(items);
     } catch (err: any) {
       console.error("Failed to fetch table statuses:", err);
-      alert(`Error loading table statuses: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Failed to fetch table statuses";
+      alert(`Error loading table statuses: ${errorMsg}`);
     }
   };
 
