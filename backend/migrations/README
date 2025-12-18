@@ -1,0 +1,11 @@
+Generic single-database configuration.
+Note: Enums cannot auto gen => look up table instead
+
+Command:
+migrate: alembic revision --autogenerate -m "msg"
+upgrade: alembic upgrade head
+downgrade: alembic downgrade -1
+history: alembic history
+merge: alembic merge -m "merge branches" <revision1> <revision2>
+
+Collabrator sync migration: alembic upgrade head

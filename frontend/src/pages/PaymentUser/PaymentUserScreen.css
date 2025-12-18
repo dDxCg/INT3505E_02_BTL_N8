@@ -1,0 +1,341 @@
+.payment-page {
+  min-height: 100vh;
+  background: #f5f7fb;
+  padding: 32px 16px;
+  box-sizing: border-box;
+}
+
+.payment-card {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  padding: 24px 32px 32px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.payment-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 16px;
+}
+
+.payment-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 4px 0 4px;
+}
+
+.payment-subtitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  margin: 0;
+}
+
+.payment-meta {
+  margin: 0;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.payment-amount-box {
+  background: linear-gradient(135deg, #2563eb, #f97316);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 220px;
+}
+
+.amount-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.9;
+}
+
+.amount-value {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.payment-section {
+  margin-top: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.items-table {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.item-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.item-row:nth-child(odd) {
+  background-color: #f9fafb;
+}
+
+.item-name {
+  font-weight: 500;
+}
+
+.item-qty {
+  text-align: right;
+  color: #6b7280;
+  min-width: 40px;
+}
+
+.item-line {
+  text-align: right;
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.payment-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.primary-button,
+.secondary-button {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #2563eb, #f97316);
+  color: white;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.primary-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.secondary-button {
+  margin-top: 12px;
+  background: #ffffff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 13px;
+}
+
+.muted-text {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.link {
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.status-section {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px 18px;
+  background: #f9fafb;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.status-badge.pending {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.status-badge.success {
+  background: #ecfdf5;
+  color: #16a34a;
+}
+
+.status-badge.failed {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.status-badge.expired {
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.status-badge.refunded {
+  background: #ecfeff;
+  color: #0891b2;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.status-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+}
+
+.status-value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-value-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-table-wrapper {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.history-table thead {
+  background: #f3f4f6;
+}
+
+.history-table th,
+.history-table td {
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.history-table tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
+.history-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* Cụm nút xác nhận trạng thái */
+.status-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-actions-label {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.status-actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-btn.success {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.status-btn.failed {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.status-btn.expired {
+  background: #6b7280;
+  color: #ffffff;
+}
+
+.status-btn.refunded {
+  background: #0891b2;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .payment-card {
+    padding: 20px 16px 24px;
+  }
+
+  .payment-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .payment-amount-box {
+    align-items: flex-start;
+  }
+}
