@@ -23,6 +23,10 @@ export default function StaffTableDetail() {
   const navigate = useNavigate();
   const tableIdNum = tableId ? parseInt(tableId) : 0;
 
+  const ORDER_STATUS = { CREATED: 1, PREPARING: 2, READY: 3, SERVED: 4, COMPLETED: 5 } as const;
+  const ITEM_STATUS = { PREPARING: 1, READY: 2, SERVED: 3 } as const;
+
+
   // State
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
@@ -76,7 +80,18 @@ export default function StaffTableDetail() {
     } finally {
       setActionLoading(null);
     }
-  };
+
+    // 4) refresh UI
+    await fetchTableData();
+    toast.success('Đã lên món thành công');
+  } catch (error) {
+    console.error('Failed to serve item:', error);
+    toast.error('Không thể lên món. Vui lòng thử lại.');
+  } finally {
+    setActionLoading(null);
+  }
+};
+
 
   const handleCancelItem = async (itemId: number) => {
     if (!confirm('Bạn có chắc muốn hủy món này?')) return;
@@ -94,18 +109,32 @@ export default function StaffTableDetail() {
   };
 
   const handleGoToPayment = () => {
-    if (!table) return;
+  if (!table) return;
 
-    // Navigate to POS page for payment
-    navigate('/staff/pos', {
-      state: {
-        tableId: table.id,
-        tableNo: table.number.toString(),
-        seats: table.seats,
-        status: 'Occupied'
-      }
-    });
-  };
+  if (!activeOrder) {
+    toast.error("Bàn này chưa có order để thanh toán");
+    return;
+  }
+
+  // served = 4
+
+  
+  if (activeOrder.status_id !== 4) {
+    toast.warning("Chỉ thanh toán khi order ở trạng thái SERVED");
+    return;
+  }
+
+  // Đi sang màn QR VNPay (màn mới)
+  navigate("/staff/payment/vnpay", {
+    state: {
+      tableId: table.id,                 
+      tableNo: String(table.number),     
+      bookingId: activeOrder.id,         
+      amount: totalAmount,               
+    },
+  });
+};
+
 
   // ============================================
   // CALCULATIONS

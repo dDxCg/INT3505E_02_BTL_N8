@@ -59,4 +59,4 @@ def build_vnpay_payment_url(payment_id: int, amount: float, client_ip: str) -> s
     query_string, secure_hash = _build_signed_query(params)
     # Gắn thêm vnp_SecureHash vào cuối
     base_url = vnpay_config.pay_url or "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-    return f"{vnpay_config.pay_url}?{query_string}&vnp_SecureHash={secure_hash}"
+    return f"{base_url}?{query_string}&vnp_SecureHash={secure_hash}"
