@@ -131,15 +131,15 @@ async def update_payment_status_repo(
     target = data.status_id
 
     if current == target:
-    if data.provider_transaction_id is not None:
-        payment.provider_transaction_id = data.provider_transaction_id
-        try:
-            await db.commit()
-        except Exception:
-            await db.rollback()
-            raise
-        await db.refresh(payment)
-    return map_db_to_schema(payment)
+        if data.provider_transaction_id is not None:
+            payment.provider_transaction_id = data.provider_transaction_id
+            try:
+                await db.commit()
+            except Exception:
+                await db.rollback()
+                raise
+            await db.refresh(payment)
+        return map_db_to_schema(payment)
 
     if current not in _allowed_transitions or target not in _allowed_transitions[current]:
         raise ValueError("INVALID_STATUS_TRANSITION")
