@@ -4,7 +4,7 @@ from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from models.Order import Order as OrderModel
 from models.Payment import Payment as PaymentModel
 from schemas.payments import (
     Payment,
@@ -130,6 +130,17 @@ async def update_payment_status_repo(
     current = payment.status_id
     target = data.status_id
 
+    if current == target:
+    if data.provider_transaction_id is not None:
+        payment.provider_transaction_id = data.provider_transaction_id
+        try:
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            raise
+        await db.refresh(payment)
+    return map_db_to_schema(payment)
+
     if current not in _allowed_transitions or target not in _allowed_transitions[current]:
         raise ValueError("INVALID_STATUS_TRANSITION")
 
@@ -137,6 +148,14 @@ async def update_payment_status_repo(
 
     if current == PAYMENT_STATUS_PENDING and target == PAYMENT_STATUS_SUCCESS:
         payment.paid_at = datetime.utcnow()
+
+    order_id = payment.booking_id  # booking_id đang là order_id
+    if order_id:
+        order_res = await db.execute(select(OrderModel).where(OrderModel.id == order_id))
+        order = order_res.scalar_one_or_none()
+        if order:
+            order.status_id = 5  # completed
+
 
     if data.provider_transaction_id is not None:
         payment.provider_transaction_id = data.provider_transaction_id

@@ -49,12 +49,7 @@ apiClient.interceptors.request.use(
 
     return config;
   },
-  (error: AxiosError) => {
-    if (API_CONFIG.enableLogging) {
-      console.error('❌ Request Error:', error);
-    }
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // ============================================
