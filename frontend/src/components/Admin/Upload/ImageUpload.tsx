@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import styles from "./ImageUpload.module.css";
+import { apiClient } from "@/api/client";
 
 interface ImageUploadProps {
   dishId: number;
@@ -82,45 +83,32 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const url = `http://localhost:8000/api/v1/resources/dishes/${dishId}/upload-image`;
+      const url = `/resources/dishes/${dishId}/upload-image`;
       console.log("[ImageUpload] Calling POST:", url);
 
-      const response = await fetch(url, {
-        method: "POST",
-        body: formData,
+      const response = await apiClient.post(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       console.log("[ImageUpload] Response status:", response.status);
+      console.log("[ImageUpload] Upload successful, image_url:", response.data.image_url);
+      setUploadStatus("Image uploaded successfully!");
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("[ImageUpload] Upload successful, image_url:", data.image_url);
-        setUploadStatus("Image uploaded successfully!");
-
-        // Clear selection
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-
-        // Notify parent
-        if (onUploadSuccess) {
-          onUploadSuccess(data.image_url);
-        }
-      } else {
-        const error = await response.json();
-        const errorMessage = error.detail || "Failed to upload image";
-        console.error("[ImageUpload] Upload failed:", errorMessage);
-        setUploadStatus(`Error: ${errorMessage}`);
-        if (onUploadError) {
-          onUploadError(errorMessage);
-        }
+      // Clear selection
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
-    } catch (error) {
-      console.error("[ImageUpload] Network error:", error);
-      const errorMessage = "Network error. Please try again.";
-      setUploadStatus(errorMessage);
+
+      // Notify parent
+      if (onUploadSuccess) {
+        onUploadSuccess(response.data.image_url);
+      }
+    } catch (err: any) {
+      console.error("[ImageUpload] Upload error:", err);
+      const errorMessage = err.response?.data?.detail || "Failed to upload image";
+      setUploadStatus(`Error: ${errorMessage}`);
       if (onUploadError) {
         onUploadError(errorMessage);
       }
@@ -157,29 +145,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setUploadStatus("Deleting image...");
 
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/v1/resources/dishes/${dishId}/delete-image`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (response.ok) {
-        setUploadStatus("Image deleted successfully!");
-        if (onDeleteSuccess) {
-          onDeleteSuccess();
-        }
-      } else {
-        const error = await response.json();
-        const errorMessage = error.detail || "Failed to delete image";
-        setUploadStatus(`Error: ${errorMessage}`);
-        if (onUploadError) {
-          onUploadError(errorMessage);
-        }
+      await apiClient.delete(`/resources/dishes/${dishId}/delete-image`);
+      setUploadStatus("Image deleted successfully!");
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
       }
-    } catch (error) {
-      const errorMessage = "Network error. Please try again.";
-      setUploadStatus(errorMessage);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.detail || "Failed to delete image";
+      setUploadStatus(`Error: ${errorMessage}`);
       if (onUploadError) {
         onUploadError(errorMessage);
       }

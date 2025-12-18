@@ -4,6 +4,7 @@ import { FilterField } from "@/components/Admin/Filter/types";
 import { Table as TableComponent } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
+import { apiClient } from "@/api/client";
 
 interface Table {
   id: number;
@@ -19,7 +20,7 @@ const formFields: FormField<Table>[] = [
     key: "status_id",
     label: "Status",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/tables-statuses",
+    fetchUrl: "/tables-statuses",
   },
 ];
 
@@ -30,7 +31,7 @@ const fields: FilterField[] = [
     key: "status_id",
     label: "Status",
     type: "select-fetch",
-    fetchUrl: "http://localhost:8000/api/v1/tables-statuses",
+    fetchUrl: "/tables-statuses",
     col: 2,
   },
 ];
@@ -47,9 +48,8 @@ const TablePage: React.FC = () => {
 
   const handleFetchOptions = async (key: string, url: string) => {
     try {
-      const res = await fetch(url);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(url);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
 
       const options = items.map((item: any) => ({
         label: item.status ?? String(item),
@@ -68,7 +68,6 @@ const TablePage: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       const params = new URLSearchParams();
       if (values.number) params.append("number", values.number);
@@ -76,16 +75,15 @@ const TablePage: React.FC = () => {
       if (values.status_id) params.append("status_id", values.status_id);
 
       const query = params.toString();
-      const url = `${apiUrl}/v1/tables${query ? "?" + query : ""}`;
+      const url = `/tables${query ? "?" + query : ""}`;
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(url);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setTables(items);
     } catch (err: any) {
       console.error("Search failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Search failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
@@ -96,21 +94,17 @@ const TablePage: React.FC = () => {
   const handleDelete = async (row: any) => {
     if (!window.confirm("Delete this table?")) return;
 
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/tables/${row.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await apiClient.delete(`/tables/${row.id}`);
       await fetchTables();
     } catch (err: any) {
       console.error("Delete failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Delete failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
   const handleFormSubmit = async (data: Partial<Table>) => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       // Convert status_id to number
       const payload = {
@@ -123,26 +117,17 @@ const TablePage: React.FC = () => {
 
       if (editingTable?.id) {
         // PUT: Update
-        const res = await fetch(`${apiUrl}/v1/tables/${editingTable.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.put(`/tables/${editingTable.id}`, payload);
       } else {
         // POST: Create
-        const res = await fetch(`${apiUrl}/v1/tables`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.post(`/tables`, payload);
       }
       closeForm();
       await fetchTables();
     } catch (err: any) {
       console.error("Form submission failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Form submission failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
@@ -161,16 +146,14 @@ const TablePage: React.FC = () => {
   };
 
   const fetchTables = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/tables`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(`/tables`);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setTables(items);
     } catch (err: any) {
       console.error("Failed to fetch tables:", err);
-      alert(`Error loading tables: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Failed to fetch tables";
+      alert(`Error loading tables: ${errorMsg}`);
     }
   };
 

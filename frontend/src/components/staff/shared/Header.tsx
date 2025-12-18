@@ -6,7 +6,7 @@ import logoImage from "../../../assets/images/logo.png";
 
 interface HeaderProps {
   userName?: string;
-  userRole?: string;
+  userRole?: string; // "Admin" | "Staff"
   onLogout?: () => void;
 }
 
@@ -18,17 +18,18 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    }
-    // TODO: Implement actual logout logic
-    console.log("Logout clicked");
+    // nếu StaffLayout truyền onLogout thì xử lý logout thật ở đó
+    if (onLogout) return onLogout();
+    console.warn("onLogout is not provided");
   };
 
   return (
     <header className="flex justify-between items-center py-4 px-8 bg-[#1a1a1a]">
       {/* LOGO */}
-      <div onClick={() => navigate("/")} className="flex items-center gap-2 cursor-pointer">
+      <div
+        onClick={() => navigate("/")}
+        className="flex items-center gap-2 cursor-pointer"
+      >
         <img src={logoImage} className="h-8 w-8" alt="restro logo" />
         <h1 className="text-lg font-semibold text-[#f5f5f5] tracking-wide">
           Restro
@@ -48,24 +49,31 @@ const Header: React.FC<HeaderProps> = ({
       {/* LOGGED USER DETAILS */}
       <div className="flex items-center gap-4">
         {userRole === "Admin" && (
-          <div onClick={() => navigate("/staff/dashboard")} className="bg-[#1f1f1f] rounded-[15px] p-3 cursor-pointer">
+          <div
+            onClick={() => navigate("/staff")}
+            className="bg-[#1f1f1f] rounded-[15px] p-3 cursor-pointer"
+            title="Go to Staff"
+          >
             <MdDashboard className="text-[#f5f5f5] text-2xl" />
           </div>
         )}
-        <div className="bg-[#1f1f1f] rounded-[15px] p-3 cursor-pointer">
+
+        <div className="bg-[#1f1f1f] rounded-[15px] p-3 cursor-pointer" title="Notifications">
           <FaBell className="text-[#f5f5f5] text-2xl" />
         </div>
-        <div className="flex items-center gap-3 cursor-pointer">
+
+        <div className="flex items-center gap-3">
           <FaUserCircle className="text-[#f5f5f5] text-4xl" />
+
           <div className="flex flex-col items-start">
             <h1 className="text-md text-[#f5f5f5] font-semibold tracking-wide">
               {userName}
             </h1>
-            <p className="text-xs text-[#ababab] font-medium">
-              {userRole}
-            </p>
+            <p className="text-xs text-[#ababab] font-medium">{userRole}</p>
           </div>
-          <IoLogOut
+
+          <button
+            type="button"
             onClick={handleLogout}
             className="text-[#f5f5f5] ml-2 cursor-pointer"
             size={35}
