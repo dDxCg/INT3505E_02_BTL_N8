@@ -5,6 +5,7 @@ import { Table } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
 import ImageUpload from "@/components/Admin/Upload/ImageUpload";
+import { apiClient } from "@/api/client";
 
 interface Tag {
   id: number;
@@ -53,8 +54,8 @@ const DishPage: React.FC = () => {
 
   const handleFetchOptions = async (key: string, url: string) => {
     try {
-      const res = await fetch(url);
-      const body = await res.json();
+      const res = await apiClient.get(url);
+      const body = res.data;
 
       const items = Array.isArray(body) ? body : body.data ?? [];
 
@@ -85,23 +86,13 @@ const DishPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/v1/resources/dishes/${row.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (res.ok) {
-        alert("Dish deleted successfully!");
-        fetchDishes();
-      } else {
-        const error = await res.json();
-        alert(`Failed to delete dish: ${error.detail || "Unknown error"}`);
-      }
-    } catch (err) {
+      await apiClient.delete(`/resources/dishes/${row.id}`);
+      alert("Dish deleted successfully!");
+      fetchDishes();
+    } catch (err: any) {
       console.error("Delete failed:", err);
-      alert("Failed to delete dish. Please try again.");
+      const errorMsg = err.response?.data?.detail || "Failed to delete dish. Please try again.";
+      alert(errorMsg);
     }
   };
 
@@ -116,23 +107,14 @@ const DishPage: React.FC = () => {
         tag_ids: [],
       };
 
-      const res = await fetch("http://localhost:8000/api/v1/resources/dishes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        alert("Dish created successfully!");
-        closeForm();
-        fetchDishes();
-      } else {
-        const error = await res.json();
-        alert(`Failed to create dish: ${error.detail || "Unknown error"}`);
-      }
-    } catch (err) {
+      await apiClient.post("/resources/dishes", payload);
+      alert("Dish created successfully!");
+      closeForm();
+      fetchDishes();
+    } catch (err: any) {
       console.error("Create failed:", err);
-      alert("Failed to create dish. Please try again.");
+      const errorMsg = err.response?.data?.detail || "Failed to create dish. Please try again.";
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -155,21 +137,19 @@ const DishPage: React.FC = () => {
         const formData = new FormData();
         formData.append("file", selectedImageFile);
 
-        const uploadRes = await fetch(
-          `http://localhost:8000/api/v1/resources/dishes/${editingDish.id}/upload-image`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          newImageUrl = uploadData.image_url;
+        try {
+          const uploadRes = await apiClient.post(
+            `/resources/dishes/${editingDish.id}/upload-image`,
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            }
+          );
+          newImageUrl = uploadRes.data.image_url;
           console.log("[Dish] Image uploaded successfully:", newImageUrl);
-        } else {
-          const uploadError = await uploadRes.json();
-          alert(`Failed to upload image: ${uploadError.detail || "Unknown error"}`);
+        } catch (uploadErr: any) {
+          const errorMsg = uploadErr.response?.data?.detail || "Failed to upload image.";
+          alert(`Failed to upload image: ${errorMsg}`);
           setLoading(false);
           return; // Stop if image upload fails
         }
@@ -185,29 +165,17 @@ const DishPage: React.FC = () => {
         image_url: newImageUrl || data.image_url,
       };
 
-      const res = await fetch(
-        `http://localhost:8000/api/v1/resources/dishes/${editingDish.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (res.ok) {
-        alert(selectedImageFile
-          ? "Dish and image updated successfully!"
-          : "Dish updated successfully!");
-        setSelectedImageFile(null); // Clear selected file after successful update
-        closeForm();
-        fetchDishes();
-      } else {
-        const error = await res.json();
-        alert(`Failed to update dish: ${error.detail || "Unknown error"}`);
-      }
-    } catch (err) {
+      await apiClient.put(`/resources/dishes/${editingDish.id}`, payload);
+      alert(selectedImageFile
+        ? "Dish and image updated successfully!"
+        : "Dish updated successfully!");
+      setSelectedImageFile(null); // Clear selected file after successful update
+      closeForm();
+      fetchDishes();
+    } catch (err: any) {
       console.error("Update failed:", err);
-      alert("Failed to update dish. Please try again.");
+      const errorMsg = err.response?.data?.detail || "Failed to update dish. Please try again.";
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -261,20 +229,15 @@ const DishPage: React.FC = () => {
 
   const fetchDishes = async (filters?: Record<string, string>) => {
     try {
-      let url = "http://localhost:8000/api/v1/resources/dishes";
-
+      const params: Record<string, string> = {};
       if (filters && Object.keys(filters).length > 0) {
-        const params = new URLSearchParams();
         Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, value);
+          if (value) params[key] = value;
         });
-        if (params.toString()) {
-          url += `?${params.toString()}`;
-        }
       }
 
-      const res = await fetch(url);
-      const body = await res.json();
+      const res = await apiClient.get("/resources/dishes", { params });
+      const body = res.data;
       const items = Array.isArray(body) ? body : body.data ?? [];
       setDishes(items);
     } catch (err) {

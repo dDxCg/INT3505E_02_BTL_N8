@@ -10,8 +10,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-
-const API = "http://localhost:8000/api/v1";
+import { apiClient } from "@/api/client";
 
 type UsagePoint = {
   time: string;
@@ -25,7 +24,7 @@ export const IngredientAnalyticsPage: React.FC = () => {
       key: "ingredient_id",
       label: "Ingredient",
       type: "select-fetch",
-      fetchUrl: `${API}/resources/ingredients`,
+      fetchUrl: "/resources/ingredients",
       col: 2,
     },
     {
@@ -47,18 +46,22 @@ export const IngredientAnalyticsPage: React.FC = () => {
     setValues((p) => ({ ...p, [key]: value }));
 
   const onFetchOptions = async (key: string, url: string) => {
-    const res = await fetch(url);
-    const body = await res.json();
+    try {
+      const res = await apiClient.get(url);
+      const body = res.data;
 
-    const items = Array.isArray(body) ? body : body.data ?? [];
+      const items = Array.isArray(body) ? body : body.data ?? [];
 
-    setOptions((p) => ({
-      ...p,
-      [key]: items.map((i: any) => ({
-        label: i.name,
-        value: String(i.id),
-      })),
-    }));
+      setOptions((p) => ({
+        ...p,
+        [key]: items.map((i: any) => ({
+          label: i.name,
+          value: String(i.id),
+        })),
+      }));
+    } catch (err) {
+      console.error("fetch options failed:", err);
+    }
   };
 
   /* ---------------- usage chart ---------------- */
@@ -75,38 +78,52 @@ export const IngredientAnalyticsPage: React.FC = () => {
 
     setLoadingUsage(true);
 
-    const params = new URLSearchParams({
-      start_date: `${start}T00:00:00`,
-      end_date: `${end}T23:59:59`,
-    }).toString();
+    try {
+      const params = {
+        start_date: `${start}T00:00:00`,
+        end_date: `${end}T23:59:59`,
+      };
 
-    const res = await fetch(
-      `${API}/resources/ingredient-analyses/usage/${ingredient_id}?${params}`
-    );
+      const res = await apiClient.get(
+        `/resources/ingredient-analyses/usage/${ingredient_id}`,
+        { params }
+      );
 
-    const raw = await res.json();
+      const raw = res.data;
 
-    const normalized = raw
-      .sort(
-        (a: any, b: any) =>
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      )
-      .map((r: any) => ({
-        time: new Date(r.created_at).toLocaleString(),
-        quantity: r.new_quantity,
-      }));
+      const normalized = raw
+        .sort(
+          (a: any, b: any) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+        .map((r: any) => ({
+          time: new Date(r.created_at).toLocaleString(),
+          quantity: r.new_quantity,
+        }));
 
-    setUsageData(normalized);
-    setLoadingUsage(false);
+      setUsageData(normalized);
+    } catch (err: any) {
+      console.error("Fetch usage failed:", err);
+      const errorMsg = err.response?.data?.detail || err.message || "Failed to fetch usage data";
+      alert(`Error: ${errorMsg}`);
+    } finally {
+      setLoadingUsage(false);
+    }
   };
 
   /* ---------------- restock table ---------------- */
   const [restockRows, setRestockRows] = useState<any[]>([]);
 
   const fetchRestock = async () => {
-    const res = await fetch(`${API}/resources/ingredient-analyses/restock`);
-    const data = await res.json();
-    setRestockRows(data);
+    try {
+      const res = await apiClient.get("/resources/ingredient-analyses/restock");
+      const data = res.data;
+      setRestockRows(data);
+    } catch (err: any) {
+      console.error("Fetch restock failed:", err);
+      const errorMsg = err.response?.data?.detail || err.message || "Failed to fetch restock data";
+      alert(`Error: ${errorMsg}`);
+    }
   };
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
+import { apiClient } from "@/api/client";
 
 interface Unit {
   id: number;
@@ -30,9 +31,8 @@ const UnitPage: React.FC = () => {
 
   const handleFetchOptions = async (key: string, url: string) => {
     try {
-      const res = await fetch(url);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(url);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
 
       const options = items.map((item: any) => ({
         label: item.name ?? String(item),
@@ -51,24 +51,20 @@ const UnitPage: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       const params = new URLSearchParams();
       if (values.name) params.append("name", values.name);
 
       const query = params.toString();
-      const url = `${apiUrl}/v1/resources/ingredient-units${
-        query ? "?" + query : ""
-      }`;
+      const url = `/resources/ingredient-units${query ? "?" + query : ""}`;
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(url);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setUnits(items);
     } catch (err: any) {
       console.error("Search failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Search failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
@@ -79,50 +75,31 @@ const UnitPage: React.FC = () => {
   const handleDelete = async (row: any) => {
     if (!window.confirm("Delete this unit?")) return;
 
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(
-        `${apiUrl}/v1/resources/ingredient-units/${row.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await apiClient.delete(`/resources/ingredient-units/${row.id}`);
       await fetchUnits();
     } catch (err: any) {
       console.error("Delete failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Delete failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
   const handleFormSubmit = async (data: Partial<Unit>) => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       if (editingUnit?.id) {
         // PUT: Update
-        const res = await fetch(
-          `${apiUrl}/v1/resources/ingredient-units/${editingUnit.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.put(`/resources/ingredient-units/${editingUnit.id}`, data);
       } else {
         // POST: Create
-        const res = await fetch(`${apiUrl}/v1/resources/ingredient-units`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.post(`/resources/ingredient-units`, data);
       }
       closeForm();
       await fetchUnits();
     } catch (err: any) {
       console.error("Form submission failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Form submission failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
   const closeForm = () => {
@@ -138,16 +115,14 @@ const UnitPage: React.FC = () => {
   };
 
   const fetchUnits = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(`${apiUrl}/v1/resources/ingredient-units`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(`/resources/ingredient-units`);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setUnits(items);
     } catch (err: any) {
       console.error("Failed to fetch units:", err);
-      alert(`Error loading units: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Failed to fetch units";
+      alert(`Error loading units: ${errorMsg}`);
     }
   };
 

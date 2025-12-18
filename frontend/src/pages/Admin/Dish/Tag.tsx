@@ -4,6 +4,7 @@ import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
+import { apiClient } from "@/api/client";
 
 interface Tag {
   id: number;
@@ -49,46 +50,27 @@ const TagPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/v1/resources/tags/${row.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (res.ok) {
-        alert("Tag deleted successfully!");
-        fetchTags();
-      } else {
-        const error = await res.json();
-        alert(`Failed to delete tag: ${error.detail || "Unknown error"}`);
-      }
-    } catch (err) {
+      await apiClient.delete(`/resources/tags/${row.id}`);
+      alert("Tag deleted successfully!");
+      fetchTags();
+    } catch (err: any) {
       console.error("Delete failed:", err);
-      alert("Failed to delete tag. Please try again.");
+      const errorMsg = err.response?.data?.detail || "Failed to delete tag. Please try again.";
+      alert(errorMsg);
     }
   };
 
   const handleFormSubmitAdd = async (data: Partial<Tag>) => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/resources/tags", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: data.name }),
-      });
-
-      if (res.ok) {
-        alert("Tag created successfully!");
-        closeForm();
-        fetchTags();
-      } else {
-        const error = await res.json();
-        alert(`Failed to create tag: ${error.detail || "Unknown error"}`);
-      }
-    } catch (err) {
+      await apiClient.post("/resources/tags", { name: data.name });
+      alert("Tag created successfully!");
+      closeForm();
+      fetchTags();
+    } catch (err: any) {
       console.error("Create failed:", err);
-      alert("Failed to create tag. Please try again.");
+      const errorMsg = err.response?.data?.detail || "Failed to create tag. Please try again.";
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -99,26 +81,14 @@ const TagPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/v1/resources/tags/${editingTag.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: data.name }),
-        }
-      );
-
-      if (res.ok) {
-        alert("Tag updated successfully!");
-        closeForm();
-        fetchTags();
-      } else {
-        const error = await res.json();
-        alert(`Failed to update tag: ${error.detail || "Unknown error"}`);
-      }
-    } catch (err) {
+      await apiClient.put(`/resources/tags/${editingTag.id}`, { name: data.name });
+      alert("Tag updated successfully!");
+      closeForm();
+      fetchTags();
+    } catch (err: any) {
       console.error("Update failed:", err);
-      alert("Failed to update tag. Please try again.");
+      const errorMsg = err.response?.data?.detail || "Failed to update tag. Please try again.";
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -136,20 +106,15 @@ const TagPage: React.FC = () => {
 
   const fetchTags = async (filters?: Record<string, string>) => {
     try {
-      let url = "http://localhost:8000/api/v1/resources/tags";
-
+      const params: Record<string, string> = {};
       if (filters && Object.keys(filters).length > 0) {
-        const params = new URLSearchParams();
         Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, value);
+          if (value) params[key] = value;
         });
-        if (params.toString()) {
-          url += `?${params.toString()}`;
-        }
       }
 
-      const res = await fetch(url);
-      const body = await res.json();
+      const res = await apiClient.get("/resources/tags", { params });
+      const body = res.data;
       const items = Array.isArray(body) ? body : body.data ?? [];
       setTags(items);
     } catch (err) {

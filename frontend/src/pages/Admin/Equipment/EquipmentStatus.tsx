@@ -4,6 +4,7 @@ import { FilterField } from "@/components/Admin/Filter/types";
 import { Table } from "@/components/Admin/Table/Table";
 import { Form, FormField } from "@/components/Admin/Form/Form";
 import { Popup } from "@/components/Admin/Wrapper/Popup";
+import { apiClient } from "@/api/client";
 
 interface EquipmentStatus {
   id: number;
@@ -37,25 +38,21 @@ const EquipmentStatusPage: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       const params = new URLSearchParams();
       if (values.name) {
         params.append("status", values.name);
       }
       const query = params.toString();
-      const url = `${apiUrl}/v1/resources/equipment-statuses${
-        query ? "?" + query : ""
-      }`;
+      const url = `/resources/equipment-statuses${query ? "?" + query : ""}`;
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get(url);
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setEquipmentStatuses(items);
     } catch (err: any) {
       console.error("Search failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Search failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
@@ -67,52 +64,33 @@ const EquipmentStatusPage: React.FC = () => {
   const handleDelete = async (row: EquipmentStatus) => {
     if (!window.confirm("Delete this status?")) return;
 
-    const apiUrl = "http://localhost:8000/api";
     try {
-      const res = await fetch(
-        `${apiUrl}/v1/resources/equipment-statuses/${row.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await apiClient.delete(`/resources/equipment-statuses/${row.id}`);
       // Refetch after delete
       await fetchStatuses();
     } catch (err: any) {
       console.error("Delete failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Delete failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
   const handleFormSubmit = async (data: Partial<EquipmentStatus>) => {
-    const apiUrl = "http://localhost:8000/api";
     try {
       if (editingStatus?.id) {
         // PUT: Update
-        const res = await fetch(
-          `${apiUrl}/v1/resources/equipment-statuses/${editingStatus.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.put(`/resources/equipment-statuses/${editingStatus.id}`, data);
       } else {
         // POST: Create
-        const res = await fetch(`${apiUrl}/v1/resources/equipment-statuses`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await apiClient.post(`/resources/equipment-statuses`, data);
       }
       closeForm();
       // Refetch after add or update
       await fetchStatuses();
     } catch (err: any) {
       console.error("Form submission failed:", err);
-      alert(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || "Form submission failed";
+      alert(`Error: ${errorMsg}`);
     }
   };
 
@@ -125,11 +103,8 @@ const EquipmentStatusPage: React.FC = () => {
 
   const fetchStatuses = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:8000/api/v1/resources/equipment-statuses"
-      );
-      const body = await res.json();
-      const items = Array.isArray(body) ? body : body.data ?? [];
+      const res = await apiClient.get("/resources/equipment-statuses");
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setEquipmentStatuses(items);
     } catch (err) {
       console.error("Failed to fetch equipment statuses:", err);

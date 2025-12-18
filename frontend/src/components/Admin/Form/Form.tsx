@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Form.module.css";
+import { apiClient } from "@/api/client";
 
 export interface FormField<T = any> {
   key: keyof T;
@@ -52,7 +53,7 @@ export function Form<T>({
         if (f.type === "select-fetch" && f.fetchUrl) {
           fetchPromises.push({
             key: String(f.key),
-            promise: fetch(f.fetchUrl).then((res) => res.json()),
+            promise: apiClient.get(f.fetchUrl).then((res) => res.data),
           });
         }
       });
